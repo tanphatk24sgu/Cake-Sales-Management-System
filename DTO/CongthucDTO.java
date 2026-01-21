@@ -1,12 +1,12 @@
 package DTO;
 
-public class CongthucDTO {
+public class CongThucDTO {
     private int maBanh;
     private int maDVT;
     private String cachLam;
 
     // Constructor
-    public CongthucDTO() {
+    public CongThucDTO() {
         this.maBanh = 0;
         this.maDVT = 0;
         this.cachLam = "";

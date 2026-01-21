@@ -1,11 +1,11 @@
 package DTO;
 
-public class ChucvuDTO {
+public class ChucVuDTO {
     private int maChucVu;
     private String tenChucVu;
 
     // Constructor
-    public ChucvuDTO() {
+    public ChucVuDTO() {
         this.maChucVu = 0;
         this.tenChucVu = "";
     }

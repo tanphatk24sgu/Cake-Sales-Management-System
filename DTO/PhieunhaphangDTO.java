@@ -2,14 +2,14 @@ package DTO;
 
 import java.util.Date;
 
-public class PhieunhaphangDTO {
+public class PhieuNhapHangDTO {
     private int maPhieuNhap;
     private Date ngay;
     private int maNV;
     private int maNCC;
 
     // Constructor
-    public PhieunhaphangDTO() {
+    public PhieuNhapHangDTO() {
         this.maPhieuNhap = 0;
         this.ngay = new Date();
         this.maNV = 0;

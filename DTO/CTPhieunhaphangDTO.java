@@ -1,6 +1,6 @@
 package DTO;
 
-public class CTPhieunhaphangDTO {
+public class CTPhieuNhapHangDTO {
     private int maPhieuNhap;
     private int maBanh;
     private int maNVL;
@@ -10,7 +10,7 @@ public class CTPhieunhaphangDTO {
     private String tinhTrang;
 
     // Constructor
-    public CTPhieunhaphangDTO() {
+    public CTPhieuNhapHangDTO() {
         this.maPhieuNhap = 0;
         this.maBanh = 0;
         this.maNVL = 0;

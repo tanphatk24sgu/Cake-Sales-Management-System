@@ -1,12 +1,12 @@
 package DTO;
 
-public class CTChuongtrinhkhuyenmaiDTO {
+public class CTChuongTrinhKhuyenMaiDTO {
     private int maKM;
     private int maBanh;
     private int phamTramGiam;
 
     // Constructor
-    public CTChuongtrinhkhuyenmaiDTO() {
+    public CTChuongTrinhKhuyenMaiDTO() {
         this.maKM = 0;
         this.maBanh = 0;
         this.phamTramGiam = 0;

@@ -1,6 +1,6 @@
 package DTO;
 
-public class ChitiethoadonDTO {
+public class ChiTietHoaDonDTO {
     private int maHD;
     private int maBanh;
     private int soLuong;
@@ -9,7 +9,7 @@ public class ChitiethoadonDTO {
     private int diem;
 
     // Constructor
-    public ChitiethoadonDTO() {
+    public ChiTietHoaDonDTO() {
         this.maHD = 0;
         this.maBanh = 0;
         this.soLuong = 0;

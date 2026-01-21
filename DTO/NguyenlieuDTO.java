@@ -1,6 +1,6 @@
 package DTO;
 
-public class NguyenlieuDTO {
+public class NguyenLieuDTO {
     private int maNL;
     private String ten;
     private int soLuong;
@@ -8,7 +8,7 @@ public class NguyenlieuDTO {
     private int maDVT;
 
     // Constructor
-    public NguyenlieuDTO() {
+    public NguyenLieuDTO() {
         this.maNL = 0;
         this.ten = "";
         this.soLuong = 0;

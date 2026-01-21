@@ -1,11 +1,11 @@
 package DTO;
 
-public class TichdiemDTO {
+public class TichDiemDTO {
     private int maKH;
     private int tichDiem;
 
     // Constructor
-    public TichdiemDTO() {
+    public TichDiemDTO() {
         this.maKH = 0;
         this.tichDiem = 0;
     }

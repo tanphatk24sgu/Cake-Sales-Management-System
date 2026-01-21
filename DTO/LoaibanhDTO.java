@@ -1,11 +1,11 @@
 package DTO;
 
-public class LoaibanhDTO {
+public class LoaiBanhDTO {
     private int maLoai;
     private String tenLoai;
 
     // Constructor
-    public LoaibanhDTO() {
+    public LoaiBanhDTO() {
         this.maLoai = 0;
         this.tenLoai = "";
     }

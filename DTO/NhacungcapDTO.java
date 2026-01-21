@@ -1,12 +1,12 @@
 package DTO;
 
-public class NhacungcapDTO {
+public class NhaCungCapDTO {
     private int maNCC;
     private String tenNCC;
     private String maSoThue;
 
     // Constructor
-    public NhacungcapDTO() {
+    public NhaCungCapDTO() {
         this.maNCC = 0;
         this.tenNCC = "";
         this.maSoThue = "";

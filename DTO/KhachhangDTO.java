@@ -1,6 +1,6 @@
 package DTO;
 
-public class KhachhangDTO {
+public class KhachHangDTO {
     private int maKH;
     private String ho;
     private String ten;
@@ -8,7 +8,7 @@ public class KhachhangDTO {
     private int sdt;
 
     // Constructor
-    public KhachhangDTO() {
+    public KhachHangDTO() {
         this.maKH = 0;
         this.ho = "";
         this.ten = "";

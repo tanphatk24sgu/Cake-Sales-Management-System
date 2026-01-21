@@ -2,7 +2,7 @@ package DTO;
 
 import java.util.Date;
 
-public class HoadonDTO {
+public class HoaDonDTO {
     private int maHD;
     private Date ngayLapHD;
     private int maNV;
@@ -10,7 +10,7 @@ public class HoadonDTO {
     private double thanhTien;
 
     // Constructor
-    public HoadonDTO() {
+    public HoaDonDTO() {
         this.maHD = 0;
         this.ngayLapHD = new Date();
         this.maNV = 0;

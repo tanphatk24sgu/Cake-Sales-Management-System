@@ -1,12 +1,12 @@
 package DTO;
 
-public class HangsanxuatDTO {
+public class HangSanXuatDTO {
     private int maHang;
     private String tenHang;
     private String diaChi;
 
     // constructor
-    public HangsanxuatDTO()
+    public HangSanXuatDTO()
     {
         this.maHang=0;
         this.tenHang="";

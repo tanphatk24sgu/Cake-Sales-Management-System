@@ -1,11 +1,11 @@
 package DTO;
 
-public class DonvitinhDTO {
+public class DonViTinhDTO {
     private int maDVT;
     private String ten;
 
     // Constructor 
-    public DonvitinhDTO()
+    public DonViTinhDTO()
     {
         this.maDVT=0;
         this.ten="";

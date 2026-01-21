@@ -2,7 +2,7 @@ package DTO;
 
 import java.util.Date;
 
-public class ChuongtrinhkhuyenmaiDTO {
+public class ChuongTrinhKhuyenMaiDTO {
     private int maKM;
     private String tenCTKM;
     private Date ngayBatDau;
@@ -10,7 +10,7 @@ public class ChuongtrinhkhuyenmaiDTO {
     private String ghiChu;
 
     // Constructor
-    public ChuongtrinhkhuyenmaiDTO() {
+    public ChuongTrinhKhuyenMaiDTO() {
         this.maKM = 0;
         this.tenCTKM = "";
         this.ngayBatDau = new Date();

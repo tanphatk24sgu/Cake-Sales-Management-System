@@ -2,7 +2,7 @@ package DTO;
 
 import java.util.Date;
 
-public class NhanvienDTO {
+public class NhanVienDTO {
     private int maNV;
     private String ho;
     private String ten;
@@ -11,7 +11,7 @@ public class NhanvienDTO {
     private int chucVu;
 
     // Constructor
-    public NhanvienDTO() {
+    public NhanVienDTO() {
         this.maNV = 0;
         this.ho = "";
         this.ten = "";
