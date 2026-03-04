@@ -41,7 +41,7 @@ Hỗ trợ cửa hàng nhỏ quản lý sản phẩm, hóa đơn, khách hàng, 
 - Nguyễn Lê Tấn Phát
 - Nguyễn Duy Quang
 - Phan Lê Ngọc Như Ý
-- Trần Mỹ Yên
+- Trần Hoàng Sơn
 - Lê Quốc Bảo
 - Hồ Đắc Khả
 
@@ -52,25 +52,25 @@ Hỗ trợ cửa hàng nhỏ quản lý sản phẩm, hóa đơn, khách hàng, 
 ### Biến & hàm
 
 - Dùng camelCase
- -  Ví dụ:
-  - JPanel pnTenSanPham;
-  - double tongTien;
-  - void tinhDoanhThu();
+- Ví dụ:
+- JPanel pnTenSanPham;
+- double tongTien;
+- void tinhDoanhThu();
 
 ### Lớp
 
 - Dùng PascalCase
   - Ví dụ:
-   - SanPham
-   - HoaDon
-   - KhachHang
+  - SanPham
+  - HoaDon
+  - KhachHang
 
 ### Hằng số
 
 - IN HOA, cách nhau bằng \_
   - Ví dụ:
-   - MAX_SIZE
-   - DEFAULT_ROLE
+  - MAX_SIZE
+  - DEFAULT_ROLE
 
 ## 2. Format Code
 
@@ -117,4 +117,3 @@ public class SanPham {
 ## Ghi chú
 
 Dự án phục vụ mục đích học tập, không dùng cho mục đích thương mại.
-
