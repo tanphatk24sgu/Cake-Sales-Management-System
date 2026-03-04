@@ -2,11 +2,8 @@ package DAO;
 
 import java.sql.*;
 import java.util.ArrayList;
-
 import javax.swing.JOptionPane;
-
 import Database.ConnectDatabase;
-
 import DTO.HoaDonDTO;
 
 public class HoaDonDAO {
@@ -52,7 +49,7 @@ public class HoaDonDAO {
         try {
             java.sql.Date sqlDate = new Date(hd.getNgayLapHD().getTime());
 
-            String qry = "ÍNERT INTO hoadon VALUES('";
+            String qry = "INSERT INTO hoadon VALUES('";
             qry += hd.getMaHD() + "', '";
             qry += sqlDate + "', '";
             qry += hd.getMaNV() + "', '";
@@ -138,11 +135,14 @@ public class HoaDonDAO {
         } finally {
             try {
                 if(rs != null)  rs.close();
-            } cactch(Exception e) {}
+            } catch(Exception e) {}
             try {
                 if(st != null)  st.close();
             } catch(Exception e) {}
         }
         return dshd;
     }
+
+    // TODO
+    // thongKeTheoNgay, thongKeTheoQuy
 }
