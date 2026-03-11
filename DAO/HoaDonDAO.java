@@ -63,7 +63,7 @@ public class HoaDonDAO {
         }
     }
 
-    public void xoa(String maHD) {
+    public void xoa(int maHD) {
         try {
             String qry = "DELETE FROM hoadon WHERE MaHD = '" + maHD + "'";
             st = conn.createStatement();
@@ -90,7 +90,7 @@ public class HoaDonDAO {
         }
     }
 
-    public HoaDonDTO timKiemTheoMa(String maHD) {
+    public HoaDonDTO timKiemTheoMa(int maHD) {
         HoaDonDTO hd = null;
         try {
             String qry = "SELECT * FROM hoadon WHERE MaHD = '" + maHD + "'";
@@ -112,7 +112,7 @@ public class HoaDonDAO {
         return hd;
     }
 
-    public ArrayList<HoaDonDTO> timKiemTheoNhanVien(String maNV) {
+    public ArrayList<HoaDonDTO> timKiemTheoNhanVien(int maNV) {
         ArrayList<HoaDonDTO> dshd = new ArrayList<>();
         try {
             String qry = "SELECT * FROM hoadon WHERE MaNV = '" + maNV + "'";
