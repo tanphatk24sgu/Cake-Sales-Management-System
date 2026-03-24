@@ -89,7 +89,11 @@ public class ChiTietHoaDonDAO {
     public ArrayList<ChiTietHoaDonDTO> timKiemTheoHoaDon(String maHD) {
         ArrayList<ChiTietHoaDonDTO> dscthd = new ArrayList<>();
         try {
+<<<<<<< HEAD
             String qry = "SELECT * FROM chitiethoadon WHERE maHD = '" + maHD + "'";
+=======
+            String qry = "SELECT * FROM chitiethoadon WHERE MaHD = '" + maHD + "'";
+>>>>>>> e0411c2e8f046d3a6586901a766034cb87671caf
 
             st = conn.createStatement();
             rs = st.executeQuery(qry);
@@ -116,5 +120,22 @@ public class ChiTietHoaDonDAO {
             } catch(Exception e) {}
         } 
         return dscthd;
+    }
+
+    public int thongKeSoLuongBan(int maBanh) {
+        int tong = 0;
+        try {
+            String qry = "SELECT IFNULL(SUM(SoLuong), 0) AS Tong FROM chitiethoadon";
+
+            st = conn.createStatement();
+            rs = st.executeQuery(qry);
+
+            if (rs.next()) {
+                tong = rs.getInt("Tong");
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null, "SQL Error: " + e.getMessage());
+        }
+        return tong;
     }
 }

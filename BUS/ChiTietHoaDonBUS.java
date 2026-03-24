@@ -70,4 +70,10 @@ public class ChiTietHoaDonBUS {
         }
         return false;
     }
+
+    public int thongKeSoLuongBan(int maBanh) {
+        if(maBanh <= 0) return 0;
+        ChiTietHoaDonDAO data = new ChiTietHoaDonDAO();
+        return data.thongKeSoLuongBan(maBanh);
+    }
 }

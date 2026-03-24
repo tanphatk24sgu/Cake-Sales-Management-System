@@ -3,6 +3,7 @@ package BUS;
 import java.util.ArrayList;
 import DTO.HoaDonDTO;
 import DAO.HoaDonDAO;
+import java.sql.Date;
 
 public class HoaDonBUS {
     static ArrayList<HoaDonDTO> dshd;
@@ -22,7 +23,7 @@ public class HoaDonBUS {
 
         // TODO Kiểm tra mã duy nhất
 
-        if(!isMaTonTai(hd.getMaHD()))  return;
+        if(isMaTonTai(hd.getMaHD()))  return;
 
         HoaDonDAO data = new HoaDonDAO();
         data.them(hd);
@@ -53,9 +54,18 @@ public class HoaDonBUS {
         }
     }
 
-    public HoaDonDTO timKiem(int maHD) {
+    public HoaDonDTO timKiemTheoMa(int maHD) {
         for(HoaDonDTO hd : dshd) {
             if(hd.getMaHD() == maHD) {
+                return hd;
+            }
+        }
+        return null;
+    }
+
+    public HoaDonDTO timKiemTheoNhanVien(int maNV) {
+        for(HoaDonDTO hd : dshd) {
+            if(hd.getMaNV() == maNV) {
                 return hd;
             }
         }
@@ -69,5 +79,31 @@ public class HoaDonBUS {
             }
         }
         return false;
+    }
+
+    public double thongKeDoanhThuTheoThang(int thang, int nam) {
+        if(thang < 1 || thang > 12 || nam < 0)  return 0;
+        HoaDonDAO data = new HoaDonDAO();
+        return data.thongKeDoanhThuTheoThang(thang, nam);
+    }
+
+    public double thongKeDoanhThuTheoQuy(int quy, int nam) {
+        if(quy < 1 || quy > 4 || nam < 0)  return 0;
+        HoaDonDAO data = new HoaDonDAO();
+        return data.thongKeDoanhThuTheoQuy(quy, nam);
+    }
+
+    public double thongKeDoanhThuTheoNam(int nam) {
+        if(nam < 0)    return 0;
+        HoaDonDAO data = new HoaDonDAO();
+        return data.thongKeDoanhThuTheoNam(nam);
+    }
+
+    public double thongKeDoanhThuTheoKhoangNgay(Date tuNgay, Date denNgay) {
+        if(tuNgay == null || denNgay == null || tuNgay.after(denNgay)) {
+            return 0;
+        }
+        HoaDonDAO data = new HoaDonDAO();
+        return data.thongKeDoanhThuTheoKhoangNgay(tuNgay, denNgay);
     }
 }

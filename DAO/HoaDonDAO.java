@@ -24,7 +24,7 @@ public class HoaDonDAO {
             while(rs.next()) {
                 HoaDonDTO hd = new HoaDonDTO();
                 hd.setMaHD(Integer.parseInt("MaHD"));
-                hd.setNgayLapHD(rs.getDate("NgaySinh"));
+                hd.setNgayLapHD(rs.getDate("NgayLapHD"));
                 hd.setMaNV(Integer.parseInt("MaNV"));
                 hd.setMaKH(Integer.parseInt("MaKH"));
                 hd.setThanhTien(Integer.parseInt("ThanhTien"));
@@ -145,4 +145,96 @@ public class HoaDonDAO {
 
     // TODO
     // thongKeTheoNgay, thongKeTheoQuy
+    public double thongKeDoanhThuTheoNgay() {
+        double doanhThu = 0;
+        try {
+            String qry = "SELECT SUM(TongTien) AS DoanhThu FROM hoadon WHERE DATE(NgayLapHD) = CURDATE()";
+            
+            st = conn.createStatement();
+            rs = st.executeQuery(qry);
+        
+            if(rs.next()) {
+                doanhThu = rs.getDouble("DoanhThu");
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null, "SQL Error: " + e.getMessage());
+        }
+        return doanhThu;
+    }
+
+    public double thongKeDoanhThuTheoThang(int thang, int nam) {
+        double doanhThu = 0;
+        try {
+            String qry = "SELECT SUM(TongTien) AS DoanhThu FROM hoadon "
+             + "WHERE MONTH(NgayLapHD) = " + thang
+             + " AND YEAR(NgayLapHD) = " + nam;
+            
+            st = conn.createStatement();
+            rs = st.executeQuery(qry);
+
+            if(rs.next()) {
+                doanhThu = rs.getDouble("DoanhThu");
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null, "SQL Error: " + e.getMessage());
+        }
+        return doanhThu;
+    }
+
+    public double thongKeDoanhThuTheoQuy(int quy, int nam) {
+        double doanhThu = 0;
+        try {
+            String qry = "SELECT SUM(TongTien) AS DoanhThu FROM hoadon "
+             + "WHERE QUARTER(NgayLapHD) = " + quy
+             + " AND YEAR(NgayLapHD) = " + nam;
+
+            st = conn.createStatement();
+            rs = st.executeQuery(qry);
+
+            if(rs.next()) {
+                doanhThu = rs.getDouble("DoanhThu");
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null, "SQL Error: " + e.getMessage());
+        }
+        return doanhThu;
+    }
+
+    public double thongKeDoanhThuTheoNam(int nam) {
+        double doanhThu = 0;
+        try {
+            String qry = "SELECT SUM(TongTien) AS DoanhThu FROM hoadon "
+             + "WHERE YEAR(NgayLapHD) = " + nam;
+
+            st = conn.createStatement();
+            rs = st.executeQuery(qry);
+
+            if(rs.next()) {
+                doanhThu = rs.getDouble("DoanhThu");
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null, "SQL Error: " + e.getMessage());
+        }
+        return doanhThu;
+    }
+
+    public double thongKeDoanhThuTheoKhoangNgay(Date tuNgay, Date denNgay) {
+        double doanhThu = 0;
+        try {
+            String qry = "SELECT IFNULL(SUM(TongTien), 0) AS DoanhThu "
+             + "FROM hoadon WHERE DATE(NgayLapHD) BETWEEN '"
+             + tuNgay + "' AND '" + denNgay + "'";
+
+            st = conn.createStatement();
+            rs = st.executeQuery(qry);
+
+            if(rs.next()) {
+                doanhThu = rs.getDouble("DoanhThu");
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null, "SQL Error: " + e.getMessage());
+        }
+        return doanhThu;
+    }
+
 }
