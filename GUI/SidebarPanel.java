@@ -2,7 +2,10 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.*;
+import java.io.File;
+import java.net.URL;
 
+// Sidebar điều hướng các màn hình chính của ứng dụng
 public class SidebarPanel extends JPanel {
     private int WIDTH = 280;
     
@@ -91,6 +94,7 @@ public class SidebarPanel extends JPanel {
         String[][] menuItems = {
             {"home.png", "Trang chủ", ContentPanel.TRANG_CHU},
             {"grocery-store.png", "Quản lí bán hàng", ContentPanel.BAN_HANG},
+            {"sale.png", "Khuyến mãi", ContentPanel.KHUYEN_MAI},
             {"cake.png", "Quản lí bánh", ContentPanel.QUAN_LI_BANH},
             {"multiple-users-silhouette.png", "Quản lí nhân sự", ContentPanel.NHAN_SU},
             {"bar-chart.png", "Thống kê", ContentPanel.THONG_KE},
@@ -118,7 +122,10 @@ public class SidebarPanel extends JPanel {
     // Hàm load và resize icon
     private ImageIcon loadIcon(String fileName, int width, int height) {
         try {
-            ImageIcon originalIcon = new ImageIcon(iconPath + fileName);
+            ImageIcon originalIcon = resolveIcon(fileName);
+            if (originalIcon == null || originalIcon.getIconWidth() <= 0) {
+                return new ImageIcon();
+            }
             Image img = originalIcon.getImage();
             Image resizedImg = img.getScaledInstance(width, height, Image.SCALE_SMOOTH);
             return new ImageIcon(resizedImg);
@@ -126,6 +133,32 @@ public class SidebarPanel extends JPanel {
             // Trả về icon rỗng nếu không load được
             return new ImageIcon();
         }
+    }
+
+    // Hỗ trợ chạy từ IDE, out/production hoặc file jar
+    private ImageIcon resolveIcon(String fileName) {
+        String relativePath = iconPath + fileName;
+
+        URL resource = getClass().getClassLoader().getResource(relativePath);
+        if (resource != null) {
+            return new ImageIcon(resource);
+        }
+
+        String[] candidates = {
+            relativePath,
+            "src/" + relativePath,
+            "out/production/cake/" + relativePath,
+            "../" + relativePath
+        };
+
+        for (String path : candidates) {
+            File file = new File(path);
+            if (file.exists()) {
+                return new ImageIcon(file.getAbsolutePath());
+            }
+        }
+
+        return null;
     }
 
     private JButton createMenuButton(ImageIcon icon, String text, String pageName) {

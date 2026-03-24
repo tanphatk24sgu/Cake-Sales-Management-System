@@ -8,7 +8,7 @@ public class HoaDonBUS {
     static ArrayList<HoaDonDTO> dshd;
     HoaDonBUS() {
         if (dshd == null) {
-            dshd = new ArrayList<>()
+            dshd = new ArrayList<>();
         }
     }
 

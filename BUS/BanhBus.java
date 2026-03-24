@@ -4,12 +4,12 @@ import DAO.BanhDAO;
 import DTO.BanhDTO;
 import java.util.ArrayList;
 
-public class BanhBUS {
+public class BanhBus {
 
     private ArrayList<BanhDTO> list;
     private BanhDAO dao;
 
-    public BanhBUS() {
+    public BanhBus() {
         dao = new BanhDAO();
         list = dao.getAll();
     }

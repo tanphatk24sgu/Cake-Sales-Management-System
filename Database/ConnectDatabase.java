@@ -7,7 +7,7 @@ import java.sql.SQLException;
 public class ConnectDatabase {
 
     private static ConnectDatabase instance;
-    private Connection connection;
+    private static Connection connection;
 
     private static final String SERVER_NAME = "localhost";
     private static final String DATABASE_NAME = "CAKE_MANAGEMENT";
@@ -28,7 +28,7 @@ public class ConnectDatabase {
         return instance;
     }
 
-    public Connection getConnection() {
+    public static Connection getConnection() {
         try {
             if (connection == null || connection.isClosed()) {
 
