@@ -1,10 +1,16 @@
+import BUS.ChuongTrinhKhuyenMaiBUS;
+import DTO.ChuongTrinhKhuyenMaiDTO;
 import javax.swing.*;
 import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.text.DecimalFormat;
+import java.text.Normalizer;
+import java.util.Calendar;
 import java.util.Date;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
 
 public class QuanLiBanHangPanel extends JPanel {
     
@@ -12,8 +18,8 @@ public class QuanLiBanHangPanel extends JPanel {
     private JTable tableProducts, tableCart;
     private DefaultTableModel productModel, cartModel;
     private JTextField txtSearchProduct, txtPhoneCustomer, txtCustomerName;
-    private JLabel lblTotalAmount, lblDiscount, lblFinalAmount, lblCustomerPoints;
-    private JButton btnPay, btnClearCart;
+    private JLabel lblTotalAmount, lblDiscount, lblFinalAmount, lblCustomerPoints, lblPromotionName;
+    private JButton btnPay, btnClearCart, btnSelectPromotion;
     
     // Màu sắc
     private Color primaryColor = new Color(236, 72, 153);
@@ -36,6 +42,11 @@ public class QuanLiBanHangPanel extends JPanel {
     // Tổng tiền
     private double totalAmount = 0;
     private double discount = 0;
+    private double customerDiscount = 0;
+    private double promotionDiscount = 0;
+    private ArrayList<PromotionOption> promotionOptions = new ArrayList<>();
+    private PromotionOption selectedPromotion = null;
+    private boolean isUpdatingCart = false;
     
     public QuanLiBanHangPanel() {
         setBackground(bgColor);
@@ -53,6 +64,8 @@ public class QuanLiBanHangPanel extends JPanel {
         
         // Load dữ liệu mẫu
         loadSampleProducts();
+        refreshPromotionsFromManager();
+        updatePromotionButtonState();
     }
     
     // ==================== HEADER ====================
@@ -214,16 +227,19 @@ public class QuanLiBanHangPanel extends JPanel {
         lblTitle.setFont(headerFont);
         lblTitle.setForeground(primaryDark);
         
-        // Bảng giỏ hàng
-        String[] columns = {"STT", "Tên bánh", "SL", "Đơn giá", "Thành tiền"};
+        // Bảng giỏ hàng (cột 5: GiftMeta — C = quà từ dòng đã mua, S = dòng quà thêm; ẩn khỏi JTable)
+        String[] columns = {"STT", "Tên bánh", "SL", "Đơn giá", "Thành tiền", "GiftMeta"};
         cartModel = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return column == 2; // Chỉ cho sửa số lượng
+                return column == 2 && !isGiftRow(row); // Không cho sửa dòng quà tặng tự động
             }
         };
         
         tableCart = new JTable(cartModel);
+        if (tableCart.getColumnModel().getColumnCount() > 5) {
+            tableCart.removeColumn(tableCart.getColumnModel().getColumn(5));
+        }
         tableCart.setRowHeight(40);
         tableCart.setFont(normalFont);
         tableCart.setGridColor(new Color(243, 244, 246));
@@ -239,7 +255,7 @@ public class QuanLiBanHangPanel extends JPanel {
         
         // Listener khi thay đổi số lượng
         cartModel.addTableModelListener(e -> {
-            if (e.getColumn() == 2) {
+            if (!isUpdatingCart && e.getColumn() == 2) {
                 updateCartTotal();
             }
         });
@@ -364,7 +380,7 @@ public class QuanLiBanHangPanel extends JPanel {
         lblTitle.setForeground(primaryDark);
         
         // Thông tin thanh toán
-        JPanel infoPanel = new JPanel(new GridLayout(3, 2, 10, 10));
+        JPanel infoPanel = new JPanel(new GridLayout(4, 2, 10, 10));
         infoPanel.setBackground(primaryLight);
         
         JLabel lbl1 = new JLabel("Tổng tiền:");
@@ -387,6 +403,13 @@ public class QuanLiBanHangPanel extends JPanel {
         lblFinalAmount.setFont(new Font("Segoe UI", Font.BOLD, 24));
         lblFinalAmount.setForeground(primaryDark);
         lblFinalAmount.setHorizontalAlignment(SwingConstants.RIGHT);
+
+        JLabel lbl4 = new JLabel("CT khuyến mãi:");
+        lbl4.setFont(normalFont);
+        lblPromotionName = new JLabel("Chưa chọn");
+        lblPromotionName.setFont(boldFont);
+        lblPromotionName.setForeground(new Color(59, 130, 246));
+        lblPromotionName.setHorizontalAlignment(SwingConstants.RIGHT);
         
         infoPanel.add(lbl1);
         infoPanel.add(lblTotalAmount);
@@ -394,6 +417,8 @@ public class QuanLiBanHangPanel extends JPanel {
         infoPanel.add(lblDiscount);
         infoPanel.add(lbl3);
         infoPanel.add(lblFinalAmount);
+        infoPanel.add(lbl4);
+        infoPanel.add(lblPromotionName);
         
         // Nút thanh toán
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
@@ -420,6 +445,9 @@ public class QuanLiBanHangPanel extends JPanel {
         btnPay.setCursor(new Cursor(Cursor.HAND_CURSOR));
         
         btnPay.addActionListener(e -> processPayment());
+
+        btnSelectPromotion = createStyledButton("🎁 Chọn / đổi KM", new Color(59, 130, 246), 160);
+        btnSelectPromotion.addActionListener(e -> showPromotionPicker());
         
         // Hover effect
         btnPay.addMouseListener(new MouseAdapter() {
@@ -433,6 +461,7 @@ public class QuanLiBanHangPanel extends JPanel {
             }
         });
         
+        buttonPanel.add(btnSelectPromotion);
         buttonPanel.add(btnPay);
         
         panel.add(lblTitle, BorderLayout.NORTH);
@@ -530,6 +559,39 @@ public class QuanLiBanHangPanel extends JPanel {
             productModel.addRow(row);
         }
     }
+
+    private void refreshPromotionsFromManager() {
+        promotionOptions.clear();
+        ChuongTrinhKhuyenMaiBUS bus = new ChuongTrinhKhuyenMaiBUS();
+        for (ChuongTrinhKhuyenMaiDTO km : bus.getList()) {
+            String loai = km.getLoaiKhuyenMai() != null ? km.getLoaiKhuyenMai().trim() : "";
+            String type = laChuongTrinhMuaTang(km, loai) ? "BUY_GET" : "PERCENT";
+            String tenMua = chuanHoaTenSanPham(km.getTenBanhMua());
+            if (tenMua.isEmpty()) {
+                tenMua = timTenBanhTheoMa(km.getMaBanhMua());
+            }
+            String tenTang = chuanHoaTenSanPham(km.getTenBanhTang());
+            if (tenTang.isEmpty()) {
+                tenTang = timTenBanhTheoMa(km.getMaBanhTang());
+            }
+            int slMua = Math.max(1, km.getSoLuongMua());
+            int slTang = Math.max(1, km.getSoLuongTang());
+            PromotionOption option = new PromotionOption(
+                "KM" + km.getMaKM(),
+                km.getTenCTKM(),
+                type,
+                km.getDieuKienToiThieu(),
+                km.getPhanTramGiam(),
+                tenMua,
+                tenTang,
+                slMua,
+                slTang
+            );
+            option.ngayBatDau = km.getNgayBatDau();
+            option.ngayKetThuc = km.getNgayKetThuc();
+            promotionOptions.add(option);
+        }
+    }
     
     // ==================== ACTIONS ====================
     private void addToCart() {
@@ -559,7 +621,7 @@ public class QuanLiBanHangPanel extends JPanel {
         // Thêm mới vào giỏ
         int stt = cartModel.getRowCount() + 1;
         double price = parsePrice(donGia);
-        cartModel.addRow(new Object[]{stt, tenBanh, 1, donGia, moneyFormat.format(price)});
+        cartModel.addRow(new Object[]{stt, tenBanh, 1, donGia, moneyFormat.format(price), null});
         
         updateCartTotal();
     }
@@ -596,6 +658,11 @@ public class QuanLiBanHangPanel extends JPanel {
     }
     
     private void updateRowTotal(int row) {
+        if (isGiftRow(row)) {
+            cartModel.setValueAt("0 VNĐ", row, 3);
+            cartModel.setValueAt("0 VNĐ", row, 4);
+            return;
+        }
         int qty = Integer.parseInt(cartModel.getValueAt(row, 2).toString());
         double price = parsePrice(cartModel.getValueAt(row, 3).toString());
         double total = qty * price;
@@ -603,18 +670,42 @@ public class QuanLiBanHangPanel extends JPanel {
     }
     
     private void updateCartTotal() {
+        isUpdatingCart = true;
+        removeGiftRows();
+        refreshPromotionsFromManager();
         totalAmount = 0;
         
         for (int i = 0; i < cartModel.getRowCount(); i++) {
             updateRowTotal(i);
             totalAmount += parsePrice(cartModel.getValueAt(i, 4).toString());
         }
-        
-        double finalAmount = totalAmount - discount;
-        
+
+        if (selectedPromotion != null) {
+            selectedPromotion = findPromotionByCode(selectedPromotion.code);
+            if (selectedPromotion != null && !isPromotionEligible(selectedPromotion)) {
+                selectedPromotion = null;
+            }
+        }
+
+        applyGiftRowsFromPromotion();
+
+        totalAmount = 0;
+        for (int i = 0; i < cartModel.getRowCount(); i++) {
+            updateRowTotal(i);
+            totalAmount += parsePrice(cartModel.getValueAt(i, 4).toString());
+        }
+
+        promotionDiscount = selectedPromotion == null ? 0 : calculatePromotionDiscount(selectedPromotion);
+        discount = customerDiscount + promotionDiscount;
+        double finalAmount = Math.max(0, totalAmount - discount);
+
+        updatePromotionButtonState();
+
         lblTotalAmount.setText(moneyFormat.format(totalAmount));
         lblDiscount.setText("-" + moneyFormat.format(discount));
         lblFinalAmount.setText(moneyFormat.format(finalAmount));
+        lblPromotionName.setText(selectedPromotion == null ? "Chưa chọn" : selectedPromotion.code);
+        isUpdatingCart = false;
     }
     
     private double parsePrice(String priceStr) {
@@ -632,7 +723,7 @@ public class QuanLiBanHangPanel extends JPanel {
         if (phone.equals("0123456789")) {
             txtCustomerName.setText("Nguyễn Văn A");
             lblCustomerPoints.setText("150 điểm");
-            discount = 15000; // Giảm giá theo điểm
+            customerDiscount = 15000; // Giảm giá theo điểm
             updateCartTotal();
         } else {
             JOptionPane.showMessageDialog(this, 
@@ -641,6 +732,8 @@ public class QuanLiBanHangPanel extends JPanel {
                 JOptionPane.INFORMATION_MESSAGE);
             txtCustomerName.setText("");
             lblCustomerPoints.setText("0 điểm");
+            customerDiscount = 0;
+            updateCartTotal();
         }
     }
     
@@ -648,7 +741,7 @@ public class QuanLiBanHangPanel extends JPanel {
         txtPhoneCustomer.setText("");
         txtCustomerName.setText("Khách lẻ");
         lblCustomerPoints.setText("0 điểm");
-        discount = 0;
+        customerDiscount = 0;
         updateCartTotal();
     }
     
@@ -676,8 +769,407 @@ public class QuanLiBanHangPanel extends JPanel {
             txtPhoneCustomer.setText("");
             txtCustomerName.setText("");
             lblCustomerPoints.setText("0 điểm");
+            customerDiscount = 0;
+            promotionDiscount = 0;
+            selectedPromotion = null;
             discount = 0;
             updateCartTotal();
+        }
+    }
+
+    private void showPromotionPicker() {
+        refreshPromotionsFromManager();
+        double subtotalChoKm = tinhTongTienGioChoDieuKienKm();
+        List<PromotionOption> eligible = getEligiblePromotions(subtotalChoKm);
+        if (eligible.isEmpty() && selectedPromotion == null) {
+            JOptionPane.showMessageDialog(this, "Giỏ hàng chưa đủ điều kiện khuyến mãi.", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
+        ArrayList<MucChonKhuyenMai> mucChon = new ArrayList<>();
+        mucChon.add(new MucChonKhuyenMai(null));
+        for (PromotionOption o : eligible) {
+            mucChon.add(new MucChonKhuyenMai(o));
+        }
+
+        MucChonKhuyenMai macDinh = mucChon.get(0);
+        if (selectedPromotion != null) {
+            for (MucChonKhuyenMai m : mucChon) {
+                if (m.option != null && selectedPromotion.code.equals(m.option.code)) {
+                    macDinh = m;
+                    break;
+                }
+            }
+        } else if (!eligible.isEmpty()) {
+            macDinh = mucChon.get(1);
+        }
+
+        MucChonKhuyenMai chon = (MucChonKhuyenMai) JOptionPane.showInputDialog(
+            this,
+            "Chọn chương trình (hoặc \"Không áp dụng\" để bỏ KM):",
+            "Áp dụng khuyến mãi",
+            JOptionPane.QUESTION_MESSAGE,
+            null,
+            mucChon.toArray(),
+            macDinh
+        );
+
+        if (chon == null) {
+            return;
+        }
+        selectedPromotion = chon.option;
+        updateCartTotal();
+    }
+
+    private List<PromotionOption> getEligiblePromotions() {
+        return getEligiblePromotions(totalAmount);
+    }
+
+    private List<PromotionOption> getEligiblePromotions(double tongChoKmGiamPhanTram) {
+        ArrayList<PromotionOption> eligible = new ArrayList<>();
+        for (PromotionOption option : promotionOptions) {
+            if (isPromotionEligible(option, tongChoKmGiamPhanTram)) {
+                eligible.add(option);
+            }
+        }
+        return eligible;
+    }
+
+    /** Tổng tiền hàng (bỏ dòng quà tặng) — dùng khi mở hộp thoại KM vì totalAmount có thể chưa khớp. */
+    private double tinhTongTienGioChoDieuKienKm() {
+        double t = 0;
+        for (int i = 0; i < cartModel.getRowCount(); i++) {
+            if (isGiftRow(i)) {
+                continue;
+            }
+            updateRowTotal(i);
+            Object cell = cartModel.getValueAt(i, 4);
+            if (cell != null) {
+                t += parsePrice(cell.toString());
+            }
+        }
+        return t;
+    }
+
+    private String timTenBanhTheoMa(int maBanh) {
+        if (maBanh <= 0) {
+            return "";
+        }
+        for (int i = 0; i < productModel.getRowCount(); i++) {
+            try {
+                int ma = Integer.parseInt(productModel.getValueAt(i, 0).toString().trim());
+                if (ma == maBanh) {
+                    return chuanHoaTenSanPham(productModel.getValueAt(i, 1).toString());
+                }
+            } catch (Exception ignored) {
+                // bỏ qua
+            }
+        }
+        return "";
+    }
+
+    /** Chuẩn NFC + gom khoảng trắng — tránh DB/collation khác Unicode với chuỗi trong code. */
+    private static String chuanHoaLoaiKhuyenMai(String loai) {
+        if (loai == null) {
+            return "";
+        }
+        return Normalizer.normalize(loai.trim(), Normalizer.Form.NFC).replaceAll("\\s+", " ");
+    }
+
+    /** So khớp “Mua X tặng Y” kể cả khác khoảng trắng / dạng Unicode. */
+    private static boolean laLoaiMuaXTangYTheoTen(String loai) {
+        if (loai == null) {
+            return false;
+        }
+        String compact = Normalizer.normalize(loai.trim(), Normalizer.Form.NFC).replaceAll("\\s+", "");
+        return compact.equalsIgnoreCase("MuaxtặngY");
+    }
+
+    private static boolean laLoaiGiamPhanTram(String loai) {
+        if (loai == null) {
+            return false;
+        }
+        String compact = Normalizer.normalize(loai.trim(), Normalizer.Form.NFC).replaceAll("\\s+", "");
+        return compact.equalsIgnoreCase("Giảmphầntrăm");
+    }
+
+    /**
+     * Nhận diện KM mua/tặng: theo tên loại hoặc theo có MaBanhMua + MaBanhTang (JOIN tên đôi khi rỗng).
+     */
+    private static boolean laChuongTrinhMuaTang(ChuongTrinhKhuyenMaiDTO km, String loaiRaw) {
+        if (laLoaiMuaXTangYTheoTen(loaiRaw)) {
+            return true;
+        }
+        return km.getMaBanhMua() > 0 && km.getMaBanhTang() > 0 && !laLoaiGiamPhanTram(loaiRaw);
+    }
+
+    private static String chuanHoaTenSanPham(String ten) {
+        if (ten == null) {
+            return "";
+        }
+        return ten.trim().replaceAll("\\s+", " ");
+    }
+
+    /**
+     * So sánh theo lịch (năm-tháng-ngày), tránh KM bị loại sai khi DB lưu 00:00:00 ở ngày kết thúc
+     * hoặc khác múi giờ so với so sánh Date tuyệt đối.
+     */
+    private boolean conTrongKhoangKhuyenMai(Date ngayBatDau, Date ngayKetThuc, Date lucKiemTra) {
+        if (ngayBatDau == null || ngayKetThuc == null) {
+            return true;
+        }
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(lucKiemTra);
+        int yN = cal.get(Calendar.YEAR);
+        int mN = cal.get(Calendar.MONTH);
+        int dN = cal.get(Calendar.DAY_OF_MONTH);
+
+        cal.setTime(ngayBatDau);
+        int y0 = cal.get(Calendar.YEAR);
+        int m0 = cal.get(Calendar.MONTH);
+        int d0 = cal.get(Calendar.DAY_OF_MONTH);
+
+        cal.setTime(ngayKetThuc);
+        int y1 = cal.get(Calendar.YEAR);
+        int m1 = cal.get(Calendar.MONTH);
+        int d1 = cal.get(Calendar.DAY_OF_MONTH);
+
+        long keyN = yN * 10000L + mN * 100L + dN;
+        long key0 = y0 * 10000L + m0 * 100L + d0;
+        long key1 = y1 * 10000L + m1 * 100L + d1;
+        return keyN >= key0 && keyN <= key1;
+    }
+
+    private boolean isPromotionEligible(PromotionOption option) {
+        return isPromotionEligible(option, totalAmount);
+    }
+
+    private boolean isPromotionEligible(PromotionOption option, double tongChoKmGiamPhanTram) {
+        Date now = new Date();
+        if (!conTrongKhoangKhuyenMai(option.ngayBatDau, option.ngayKetThuc, now)) {
+            return false;
+        }
+
+        if ("PERCENT".equals(option.type)) {
+            return tongChoKmGiamPhanTram >= option.minOrderValue;
+        }
+        if ("BUY_GET".equals(option.type)) {
+            if (chuanHoaTenSanPham(option.buyProductName).isEmpty()
+                    || chuanHoaTenSanPham(option.giftProductName).isEmpty()) {
+                return false;
+            }
+            int qty = getCartQuantity(option.buyProductName);
+            return qty >= option.buyQty;
+        }
+        return false;
+    }
+
+    private double calculatePromotionDiscount(PromotionOption option) {
+        if ("PERCENT".equals(option.type)) {
+            return totalAmount * option.percentValue / 100.0;
+        }
+        if ("BUY_GET".equals(option.type)) {
+            return option.existingGiftDiscount;
+        }
+        return 0;
+    }
+
+    private int getCartQuantity(String productName) {
+        String key = chuanHoaTenSanPham(productName);
+        if (key.isEmpty()) {
+            return 0;
+        }
+        for (int i = 0; i < cartModel.getRowCount(); i++) {
+            if (isGiftRow(i)) continue;
+            String tenHang = chuanHoaTenSanPham(cartModel.getValueAt(i, 1).toString());
+            if (key.equals(tenHang)) {
+                try {
+                    return Integer.parseInt(cartModel.getValueAt(i, 2).toString().trim());
+                } catch (NumberFormatException ex) {
+                    return 0;
+                }
+            }
+        }
+        return 0;
+    }
+
+    private void applyGiftRowsFromPromotion() {
+        if (selectedPromotion == null || !"BUY_GET".equals(selectedPromotion.type)) return;
+
+        int buyQty = Math.max(1, selectedPromotion.buyQty);
+        int giftQty = Math.max(1, selectedPromotion.giftQty);
+        int qtyBuy = getCartQuantity(selectedPromotion.buyProductName);
+        int times = qtyBuy / buyQty;
+        int qtyGiftTotal = times * giftQty;
+        if (qtyGiftTotal <= 0) return;
+
+        String giftProductName = selectedPromotion.giftProductName;
+        String giftDisplayName = giftProductName + " (Tặng)";
+        int remainingFree = qtyGiftTotal;
+
+        for (int i = 0; i < cartModel.getRowCount() && remainingFree > 0; i++) {
+            if (isGiftRow(i)) continue;
+            String name = cartModel.getValueAt(i, 1).toString();
+            if (!chuanHoaTenSanPham(giftProductName).equals(chuanHoaTenSanPham(name))) continue;
+
+            int rowQty = Integer.parseInt(cartModel.getValueAt(i, 2).toString());
+            if (rowQty <= remainingFree) {
+                cartModel.setValueAt(giftDisplayName, i, 1);
+                cartModel.setValueAt("0 VNĐ", i, 3);
+                cartModel.setValueAt("0 VNĐ", i, 4);
+                cartModel.setValueAt("C", i, 5);
+                remainingFree -= rowQty;
+            } else {
+                int paidQty = rowQty - remainingFree;
+                cartModel.setValueAt(remainingFree, i, 2);
+                cartModel.setValueAt(giftDisplayName, i, 1);
+                cartModel.setValueAt("0 VNĐ", i, 3);
+                cartModel.setValueAt("0 VNĐ", i, 4);
+                cartModel.setValueAt("C", i, 5);
+                double unit = getProductPrice(giftProductName);
+                String unitStr = moneyFormat.format(unit);
+                cartModel.insertRow(i + 1, new Object[]{
+                    0, giftProductName, paidQty, unitStr, moneyFormat.format(unit * paidQty), null
+                });
+                remainingFree = 0;
+            }
+        }
+
+        if (remainingFree > 0) {
+            cartModel.addRow(new Object[]{0, giftDisplayName, remainingFree, "0 VNĐ", "0 VNĐ", "S"});
+        }
+        selectedPromotion.existingGiftDiscount = 0;
+        refreshCartSTT();
+    }
+
+    private void removeGiftRows() {
+        for (int i = cartModel.getRowCount() - 1; i >= 0; i--) {
+            if (!isGiftRow(i)) continue;
+            Object meta = cartModel.getColumnCount() > 5 ? cartModel.getValueAt(i, 5) : null;
+            if ("C".equals(meta)) {
+                revertConvertedGiftRow(i);
+            } else {
+                cartModel.removeRow(i);
+            }
+        }
+        refreshCartSTT();
+    }
+
+    private void revertConvertedGiftRow(int row) {
+        if (row < 0 || row >= cartModel.getRowCount()) return;
+        String name = cartModel.getValueAt(row, 1).toString();
+        if (!name.endsWith(" (Tặng)")) return;
+        String base = name.substring(0, name.length() - " (Tặng)".length());
+        cartModel.setValueAt(base, row, 1);
+        for (int j = 0; j < productModel.getRowCount(); j++) {
+            if (base.equals(productModel.getValueAt(j, 1).toString())) {
+                String unit = productModel.getValueAt(j, 2).toString();
+                cartModel.setValueAt(unit, row, 3);
+                break;
+            }
+        }
+        if (cartModel.getColumnCount() > 5) {
+            cartModel.setValueAt(null, row, 5);
+        }
+        updateRowTotal(row);
+    }
+
+    private boolean isGiftRow(int row) {
+        if (row < 0 || row >= cartModel.getRowCount()) return false;
+        if (cartModel.getColumnCount() > 5) {
+            Object meta = cartModel.getValueAt(row, 5);
+            if ("S".equals(meta) || "C".equals(meta)) {
+                return true;
+            }
+        }
+        Object value = cartModel.getValueAt(row, 1);
+        if (value == null) return false;
+        String s = value.toString();
+        return s.endsWith("(Tặng)");
+    }
+
+    private void refreshCartSTT() {
+        for (int i = 0; i < cartModel.getRowCount(); i++) {
+            cartModel.setValueAt(i + 1, i, 0);
+        }
+    }
+
+    private double getProductPrice(String productName) {
+        String key = chuanHoaTenSanPham(productName);
+        if (key.isEmpty()) {
+            return 0;
+        }
+        for (int i = 0; i < productModel.getRowCount(); i++) {
+            if (key.equals(chuanHoaTenSanPham(productModel.getValueAt(i, 1).toString()))) {
+                return parsePrice(productModel.getValueAt(i, 2).toString());
+            }
+        }
+        return 0;
+    }
+
+    private PromotionOption findPromotionByCode(String code) {
+        for (PromotionOption option : promotionOptions) {
+            if (option.code.equals(code)) return option;
+        }
+        return null;
+    }
+
+    private void updatePromotionButtonState() {
+        if (btnSelectPromotion == null) return;
+        String maDangChon = selectedPromotion != null ? selectedPromotion.code : null;
+        refreshPromotionsFromManager();
+        if (maDangChon != null) {
+            selectedPromotion = findPromotionByCode(maDangChon);
+        }
+        boolean hasEligible = !getEligiblePromotions().isEmpty();
+        boolean moDuocHopThoai = hasEligible || selectedPromotion != null;
+        btnSelectPromotion.setVisible(moDuocHopThoai);
+        btnSelectPromotion.setEnabled(moDuocHopThoai);
+    }
+
+    private static class MucChonKhuyenMai {
+        final PromotionOption option;
+
+        MucChonKhuyenMai(PromotionOption option) {
+            this.option = option;
+        }
+
+        @Override
+        public String toString() {
+            return option == null ? "— Không áp dụng khuyến mãi —" : option.name;
+        }
+    }
+
+    private static class PromotionOption {
+        String code;
+        String name;
+        String type;
+        double minOrderValue;
+        int percentValue;
+        String buyProductName;
+        String giftProductName;
+        int buyQty;
+        int giftQty;
+        Date ngayBatDau;
+        Date ngayKetThuc;
+        double existingGiftDiscount;
+
+        PromotionOption(String code, String name, String type, double minOrderValue, int percentValue,
+                        String buyProductName, String giftProductName, int buyQty, int giftQty) {
+            this.code = code;
+            this.name = name;
+            this.type = type;
+            this.minOrderValue = minOrderValue;
+            this.percentValue = percentValue;
+            this.buyProductName = buyProductName;
+            this.giftProductName = giftProductName;
+            this.buyQty = buyQty;
+            this.giftQty = giftQty;
+        }
+
+        @Override
+        public String toString() {
+            return name;
         }
     }
     

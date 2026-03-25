@@ -3,7 +3,9 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import BUS.BanhBus;
+import BUS.ChuongTrinhKhuyenMaiBUS;
 import DTO.BanhDTO;
+import DTO.ChuongTrinhKhuyenMaiDTO;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -45,6 +47,7 @@ public class QuanLiKhuyenMaiPanel extends JPanel {
 
     private final ArrayList<KhuyenMaiVM> dsKhuyenMai = new ArrayList<>();
     private final ArrayList<ItemBanh> dsBanh = new ArrayList<>();
+    private final ChuongTrinhKhuyenMaiBUS chuongTrinhKhuyenMaiBus = new ChuongTrinhKhuyenMaiBUS();
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
     private final DecimalFormat moneyFormat = new DecimalFormat("#,###");
 
@@ -80,7 +83,7 @@ public class QuanLiKhuyenMaiPanel extends JPanel {
         loadDanhSachBanh();
         bindDanhSachBanhToCombobox();
         bindEvents();
-        loadSampleData();
+        loadDataFromDatabase();
         renderTable();
     }
 
@@ -381,11 +384,17 @@ public class QuanLiKhuyenMaiPanel extends JPanel {
             return;
         }
 
-        KhuyenMaiVM km = readFormData();
-        km.maKM = generateNextMaKM();
-        dsKhuyenMai.add(km);
+        ChuongTrinhKhuyenMaiDTO dto = readFormDTO();
+        int newId = chuongTrinhKhuyenMaiBus.add(dto);
+        if (newId <= 0) {
+            JOptionPane.showMessageDialog(this,
+                    "Không lưu được xuống CSDL. Kiểm tra MySQL và bảng CHUONGTRINHKHUYENMAI (đủ cột như trong java__cake.sql — tạo DB bằng cách import file đó một lần).",
+                    "Lỗi", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        reloadDsFromBus();
         renderTable();
-        selectByMa(km.maKM);
+        selectByMa(newId);
         JOptionPane.showMessageDialog(this, "Thêm khuyến mãi thành công!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
     }
 
@@ -403,16 +412,13 @@ public class QuanLiKhuyenMaiPanel extends JPanel {
         }
 
         int maKM = Integer.parseInt(txtMaKM.getText().trim());
-        KhuyenMaiVM newData = readFormData();
-        newData.maKM = maKM;
-
-        for (int i = 0; i < dsKhuyenMai.size(); i++) {
-            if (dsKhuyenMai.get(i).maKM == maKM) {
-                dsKhuyenMai.set(i, newData);
-                break;
-            }
+        ChuongTrinhKhuyenMaiDTO dto = readFormDTO();
+        dto.setMaKM(maKM);
+        if (!chuongTrinhKhuyenMaiBus.update(dto)) {
+            JOptionPane.showMessageDialog(this, "Không cập nhật được CSDL.", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            return;
         }
-
+        reloadDsFromBus();
         renderTable();
         selectByMa(maKM);
         JOptionPane.showMessageDialog(this, "Cập nhật khuyến mãi thành công!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
@@ -437,7 +443,11 @@ public class QuanLiKhuyenMaiPanel extends JPanel {
             return;
         }
 
-        dsKhuyenMai.remove(selectedRow);
+        if (!chuongTrinhKhuyenMaiBus.delete(km.maKM)) {
+            JOptionPane.showMessageDialog(this, "Không xóa được trên CSDL.", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        reloadDsFromBus();
         renderTable();
         lamMoiForm();
         JOptionPane.showMessageDialog(this, "Đã xóa chương trình khuyến mãi.", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
@@ -501,23 +511,44 @@ public class QuanLiKhuyenMaiPanel extends JPanel {
         return null;
     }
 
-    private KhuyenMaiVM readFormData() {
-        KhuyenMaiVM km = new KhuyenMaiVM();
-        km.tenCT = txtTenCT.getText().trim();
-        km.loaiKhuyenMai = cboLoaiKM.getSelectedItem().toString();
-        km.phanTramGiam = (Integer) spnPhanTram.getValue();
-        km.dieuKienToiThieu = ((Number) spnDieuKien.getValue()).doubleValue();
-        km.soLuongMua = (Integer) spnSoLuongMua.getValue();
-        km.soLuongTang = (Integer) spnSoLuongTang.getValue();
+    private ChuongTrinhKhuyenMaiDTO readFormDTO() {
+        ChuongTrinhKhuyenMaiDTO d = new ChuongTrinhKhuyenMaiDTO();
+        d.setTenCTKM(txtTenCT.getText().trim());
+        d.setLoaiKhuyenMai(cboLoaiKM.getSelectedItem().toString());
+        d.setPhanTramGiam((Integer) spnPhanTram.getValue());
+        d.setDieuKienToiThieu(((Number) spnDieuKien.getValue()).doubleValue());
+        d.setSoLuongMua((Integer) spnSoLuongMua.getValue());
+        d.setSoLuongTang((Integer) spnSoLuongTang.getValue());
         ItemBanh banhMua = (ItemBanh) cboBanhMua.getSelectedItem();
         ItemBanh banhTang = (ItemBanh) cboBanhTang.getSelectedItem();
-        km.maBanhMua = banhMua != null ? banhMua.maBanh : 0;
-        km.tenBanhMua = banhMua != null ? banhMua.tenBanh : "";
-        km.maBanhTang = banhTang != null ? banhTang.maBanh : 0;
-        km.tenBanhTang = banhTang != null ? banhTang.tenBanh : "";
-        km.ngayBatDau = dtNgayBatDau.getDate();
-        km.ngayKetThuc = dtNgayKetThuc.getDate();
-        return km;
+        d.setMaBanhMua(banhMua != null ? banhMua.maBanh : 0);
+        d.setTenBanhMua(banhMua != null ? banhMua.tenBanh : "");
+        d.setMaBanhTang(banhTang != null ? banhTang.maBanh : 0);
+        d.setTenBanhTang(banhTang != null ? banhTang.tenBanh : "");
+        d.setNgayBatDau(normalizeToStartOfDay(dtNgayBatDau.getDate()));
+        d.setNgayKetThuc(normalizeToEndOfDay(dtNgayKetThuc.getDate()));
+        d.setGhiChu("");
+        return d;
+    }
+
+    private Date normalizeToStartOfDay(Date date) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        return cal.getTime();
+    }
+
+    private Date normalizeToEndOfDay(Date date) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        cal.set(Calendar.HOUR_OF_DAY, 23);
+        cal.set(Calendar.MINUTE, 59);
+        cal.set(Calendar.SECOND, 59);
+        cal.set(Calendar.MILLISECOND, 999);
+        return cal.getTime();
     }
 
     private void renderTable() {
@@ -552,14 +583,6 @@ public class QuanLiKhuyenMaiPanel extends JPanel {
         }
     }
 
-    private int generateNextMaKM() {
-        int max = 0;
-        for (KhuyenMaiVM km : dsKhuyenMai) {
-            if (km.maKM > max) max = km.maKM;
-        }
-        return max + 1;
-    }
-
     private String getTinhTrang(KhuyenMaiVM km) {
         Date now = new Date();
         if (now.before(km.ngayBatDau)) return "Chưa hiệu lực";
@@ -577,17 +600,85 @@ public class QuanLiKhuyenMaiPanel extends JPanel {
         }
     }
 
-    private void loadSampleData() {
+    private void seedSampleProgramsIfEmpty() {
         Date now = new Date();
-        KhuyenMaiVM km1 = new KhuyenMaiVM(1, "Khuyến mãi khai trương", "Giảm phần trăm", 10, 150000, 0, 0, 0, "", 0, "", now, addDays(now, 30));
         ItemBanh banhMua = dsBanh.get(0);
         ItemBanh banhTang = dsBanh.size() > 1 ? dsBanh.get(1) : dsBanh.get(0);
-        KhuyenMaiVM km2 = new KhuyenMaiVM(2, "Mua 1 tặng 1 cuối tuần", "Mua X tặng Y", 0, 0, 1, 1,
-            banhMua.maBanh, banhMua.tenBanh, banhTang.maBanh, banhTang.tenBanh, addDays(now, -7), addDays(now, 15));
-        KhuyenMaiVM km3 = new KhuyenMaiVM(3, "Giảm sâu cuối tháng", "Giảm phần trăm", 30, 500000, 0, 0, 0, "", 0, "", addDays(now, -40), addDays(now, -10));
-        dsKhuyenMai.add(km1);
-        dsKhuyenMai.add(km2);
-        dsKhuyenMai.add(km3);
+
+        ChuongTrinhKhuyenMaiDTO km1 = new ChuongTrinhKhuyenMaiDTO();
+        km1.setTenCTKM("Khuyến mãi khai trương");
+        km1.setLoaiKhuyenMai("Giảm phần trăm");
+        km1.setPhanTramGiam(10);
+        km1.setDieuKienToiThieu(150000);
+        km1.setSoLuongMua(0);
+        km1.setSoLuongTang(0);
+        km1.setMaBanhMua(0);
+        km1.setMaBanhTang(0);
+        km1.setNgayBatDau(normalizeToStartOfDay(now));
+        km1.setNgayKetThuc(normalizeToEndOfDay(addDays(now, 30)));
+        chuongTrinhKhuyenMaiBus.add(km1);
+
+        ChuongTrinhKhuyenMaiDTO km2 = new ChuongTrinhKhuyenMaiDTO();
+        km2.setTenCTKM("Mua 1 tặng 1 cuối tuần");
+        km2.setLoaiKhuyenMai("Mua X tặng Y");
+        km2.setPhanTramGiam(0);
+        km2.setDieuKienToiThieu(0);
+        km2.setSoLuongMua(1);
+        km2.setSoLuongTang(1);
+        km2.setMaBanhMua(banhMua.maBanh);
+        km2.setMaBanhTang(banhTang.maBanh);
+        km2.setNgayBatDau(normalizeToStartOfDay(addDays(now, -7)));
+        km2.setNgayKetThuc(normalizeToEndOfDay(addDays(now, 15)));
+        chuongTrinhKhuyenMaiBus.add(km2);
+
+        ChuongTrinhKhuyenMaiDTO km3 = new ChuongTrinhKhuyenMaiDTO();
+        km3.setTenCTKM("Giảm sâu cuối tháng");
+        km3.setLoaiKhuyenMai("Giảm phần trăm");
+        km3.setPhanTramGiam(30);
+        km3.setDieuKienToiThieu(500000);
+        km3.setSoLuongMua(0);
+        km3.setSoLuongTang(0);
+        km3.setMaBanhMua(0);
+        km3.setMaBanhTang(0);
+        km3.setNgayBatDau(normalizeToStartOfDay(addDays(now, -40)));
+        km3.setNgayKetThuc(normalizeToEndOfDay(addDays(now, -10)));
+        chuongTrinhKhuyenMaiBus.add(km3);
+
+        chuongTrinhKhuyenMaiBus.loadData();
+    }
+
+    private void loadDataFromDatabase() {
+        chuongTrinhKhuyenMaiBus.loadData();
+        reloadDsFromBus();
+        if (dsKhuyenMai.isEmpty()) {
+            seedSampleProgramsIfEmpty();
+            reloadDsFromBus();
+        }
+    }
+
+    private void reloadDsFromBus() {
+        dsKhuyenMai.clear();
+        for (ChuongTrinhKhuyenMaiDTO d : chuongTrinhKhuyenMaiBus.getList()) {
+            dsKhuyenMai.add(dtoToVM(d));
+        }
+    }
+
+    private KhuyenMaiVM dtoToVM(ChuongTrinhKhuyenMaiDTO d) {
+        KhuyenMaiVM vm = new KhuyenMaiVM();
+        vm.maKM = d.getMaKM();
+        vm.tenCT = d.getTenCTKM();
+        vm.loaiKhuyenMai = d.getLoaiKhuyenMai();
+        vm.phanTramGiam = d.getPhanTramGiam();
+        vm.dieuKienToiThieu = d.getDieuKienToiThieu();
+        vm.soLuongMua = d.getSoLuongMua();
+        vm.soLuongTang = d.getSoLuongTang();
+        vm.maBanhMua = d.getMaBanhMua();
+        vm.tenBanhMua = d.getTenBanhMua() != null ? d.getTenBanhMua() : "";
+        vm.maBanhTang = d.getMaBanhTang();
+        vm.tenBanhTang = d.getTenBanhTang() != null ? d.getTenBanhTang() : "";
+        vm.ngayBatDau = d.getNgayBatDau();
+        vm.ngayKetThuc = d.getNgayKetThuc();
+        return vm;
     }
 
     private Date addDays(Date source, int days) {
