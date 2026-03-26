@@ -9,6 +9,7 @@ public class ContentPanel extends JPanel {
     public static final String BAN_HANG = "sale";
     public static final String QUAN_LI_BANH = "cake";
     public static final String NHAN_SU = "staff";
+    public static final String HOA_DON = "invoice";
     public static final String THONG_KE = "stats";
     public static final String CAI_DAT = "settings";
 
@@ -22,7 +23,9 @@ public class ContentPanel extends JPanel {
         add(new QuanLiBanHangPanel(), BAN_HANG);
         add(new QuanLiBanhPanel(), QUAN_LI_BANH);
         add(createPlaceholderPanel("👥 QUẢN LÍ NHÂN SỰ", "Chức năng đang phát triển..."), NHAN_SU);
-        add(createPlaceholderPanel("📊 THỐNG KÊ", "Chức năng đang phát triển..."), THONG_KE);
+        add(new QuanLiHoaDon(), HOA_DON);
+        add(new ThongKePanel(), THONG_KE);
+        // add(createPlaceholderPanel("📊 THỐNG KÊ", "Chức năng đang phát triển..."), THONG_KE);
         add(createPlaceholderPanel("⚙️ CÀI ĐẶT", "Chức năng đang phát triển..."), CAI_DAT);
         
         // Hiển thị trang chủ mặc định
