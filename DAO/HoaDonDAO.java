@@ -23,11 +23,11 @@ public class HoaDonDAO {
 
             while(rs.next()) {
                 HoaDonDTO hd = new HoaDonDTO();
-                hd.setMaHD(rs.getInt("MaHD"));
+                hd.setMaHD(Integer.parseInt("MaHD"));
                 hd.setNgayLapHD(rs.getDate("NgayLapHD"));
-                hd.setMaNV(rs.getInt("MaNV"));
-                hd.setMaKH(rs.getInt("MaKH"));
-                hd.setThanhTien(rs.getDouble("ThanhTien"));
+                hd.setMaNV(Integer.parseInt("MaNV"));
+                hd.setMaKH(Integer.parseInt("MaKH"));
+                hd.setThanhTien(Integer.parseInt("ThanhTien"));
 
                 dshd.add(hd);
             }

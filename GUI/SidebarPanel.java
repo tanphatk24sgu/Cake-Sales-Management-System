@@ -1,3 +1,5 @@
+package GUI;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -8,35 +10,32 @@ import java.net.URL;
 // Sidebar điều hướng các màn hình chính của ứng dụng
 public class SidebarPanel extends JPanel {
     private int WIDTH = 280;
-    
+
     // Đường dẫn thư mục icon
     private String iconPath = "img/icon/";
-    
+
     // ContentPanel để chuyển trang
     private ContentPanel contentPanel;
-    
+
     // Bảng màu hiện đại
-    private Color primaryColor = new Color(236, 72, 153);      // Hồng đậm
-    private Color primaryDark = new Color(190, 24, 93);        // Hồng tối
-    private Color primaryLight = new Color(251, 207, 232);     // Hồng nhạt
+    private Color primaryColor = new Color(236, 72, 153); // Hồng đậm
+    private Color primaryDark = new Color(190, 24, 93); // Hồng tối
+    private Color primaryLight = new Color(251, 207, 232); // Hồng nhạt
     private Color textColor = Color.WHITE;
-    private Color hoverColor = new Color(255, 255, 255, 30);   // Trắng trong suốt
+    private Color hoverColor = new Color(255, 255, 255, 30); // Trắng trong suốt
     private Color activeColor = new Color(255, 255, 255, 50);
-    
+
     // Font hiện đại
     private Font titleFont = new Font("Segoe UI", Font.BOLD, 22);
     private Font menuFont = new Font("Segoe UI", Font.PLAIN, 15);
     private Font menuFontBold = new Font("Segoe UI", Font.BOLD, 15);
     private Font smallFont = new Font("Segoe UI", Font.PLAIN, 12);
 
-    
-    
-    
     private JButton activeButton = null;
 
     public SidebarPanel(ContentPanel contentPanel) {
         this.contentPanel = contentPanel;
-        
+
         setPreferredSize(new Dimension(WIDTH, 0));
         setBackground(primaryColor);
         setLayout(new BorderLayout());
@@ -45,7 +44,7 @@ public class SidebarPanel extends JPanel {
         add(createMenuPanel(), BorderLayout.CENTER);
         add(createFooter(), BorderLayout.SOUTH);
     }
-    
+
     // Constructor mặc định (không có ContentPanel)
     public SidebarPanel() {
         this(null);
@@ -92,14 +91,16 @@ public class SidebarPanel extends JPanel {
         // Menu items với icons và tên trang tương ứng
         // {icon, text, pageName}
         String[][] menuItems = {
-            {"home.png", "Trang chủ", ContentPanel.TRANG_CHU},
-            {"grocery-store.png", "Quản lí bán hàng", ContentPanel.BAN_HANG},
-            {"sale.png", "Khuyến mãi", ContentPanel.KHUYEN_MAI},
-            {"cake.png", "Quản lí bánh", ContentPanel.QUAN_LI_BANH},
-            {"multiple-users-silhouette.png", "Quản lí nhân sự", ContentPanel.NHAN_SU},
-            {"invoice.png", "Quản lí hóa đơn", ContentPanel.HOA_DON},
-            {"bar-chart.png", "Thống kê", ContentPanel.THONG_KE},
-            {"setting.png", "Cài đặt", ContentPanel.CAI_DAT}
+                { "home.png", "Trang chủ", ContentPanel.TRANG_CHU },
+                { "grocery-store.png", "Quản lí bán hàng", ContentPanel.BAN_HANG },
+                { "sale.png", "Khuyến mãi", ContentPanel.KHUYEN_MAI },
+                { "cake.png", "Quản lí bánh", ContentPanel.QUAN_LI_BANH },
+                { "multiple-users-silhouette.png", "Quản lí nhân sự", ContentPanel.NHAN_SU },
+                { "bar-chart.png", "Thống kê", ContentPanel.THONG_KE },
+                { "gift.png", "Tích điểm", ContentPanel.TICH_DIEM },
+                { "recipe.png", "Công thức", ContentPanel.CONG_THUC },
+                { "supplier.png", "Nhà cung cấp", ContentPanel.NHA_CUNG_CAP },
+                { "setting.png", "Cài đặt", ContentPanel.CAI_DAT }
         };
 
         for (int i = 0; i < menuItems.length; i++) {
@@ -108,7 +109,7 @@ public class SidebarPanel extends JPanel {
             JButton btn = createMenuButton(icon, menuItems[i][1], pageName);
             menuPanel.add(btn);
             menuPanel.add(Box.createVerticalStrut(8));
-            
+
             // Set item đầu tiên là active
             if (i == 0) {
                 activeButton = btn;
@@ -146,10 +147,10 @@ public class SidebarPanel extends JPanel {
         }
 
         String[] candidates = {
-            relativePath,
-            "src/" + relativePath,
-            "out/production/cake/" + relativePath,
-            "../" + relativePath
+                relativePath,
+                "src/" + relativePath,
+                "out/production/cake/" + relativePath,
+                "../" + relativePath
         };
 
         for (String path : candidates) {
@@ -168,11 +169,11 @@ public class SidebarPanel extends JPanel {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                
+
                 // Vẽ background bo góc
                 g2.setColor(getBackground());
                 g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 15, 15));
-                
+
                 g2.dispose();
                 super.paintComponent(g);
             }
@@ -187,7 +188,7 @@ public class SidebarPanel extends JPanel {
         btn.setFocusPainted(false);
         btn.setContentAreaFilled(false);
         btn.setHorizontalAlignment(SwingConstants.LEFT);
-        btn.setIconTextGap(15);  // Khoảng cách giữa icon và text
+        btn.setIconTextGap(15); // Khoảng cách giữa icon và text
         btn.setBorder(BorderFactory.createEmptyBorder(0, 15, 0, 15));
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btn.setOpaque(false);
@@ -219,7 +220,7 @@ public class SidebarPanel extends JPanel {
                 activeButton = btn;
                 btn.setBackground(activeColor);
                 btn.setFont(menuFontBold);
-                
+
                 // Chuyển trang
                 if (contentPanel != null) {
                     contentPanel.showPage(pageName);
@@ -299,13 +300,15 @@ public class SidebarPanel extends JPanel {
         logout.setCursor(new Cursor(Cursor.HAND_CURSOR));
         logout.setToolTipText("Đăng xuất");
 
-        // Hover effect cho nút logout  
+        // Hover effect cho nút logout
         logout.addMouseListener(new MouseAdapter() {
             Color originalColor = logout.getBackground();
+
             @Override
             public void mouseEntered(MouseEvent e) {
                 logout.setBackground(new Color(220, 38, 38));
             }
+
             @Override
             public void mouseExited(MouseEvent e) {
                 logout.setBackground(originalColor);

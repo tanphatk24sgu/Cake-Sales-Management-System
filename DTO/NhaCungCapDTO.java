@@ -5,14 +5,6 @@ public class NhaCungCapDTO {
     private String tenNCC;
     private String maSoThue;
 
-    // Constructor
-    public NhaCungCapDTO() {
-        this.maNCC = 0;
-        this.tenNCC = "";
-        this.maSoThue = "";
-    }
-
-    // Getter and Setter
     public int getMaNCC() {
         return maNCC;
     }
@@ -35,11 +27,5 @@ public class NhaCungCapDTO {
 
     public void setMaSoThue(String maSoThue) {
         this.maSoThue = maSoThue;
-    }
-
-    // toString
-    @Override
-    public String toString() {
-        return "Mã NCC: " + maNCC + " | Tên NCC: " + tenNCC + " | Mã số thuế: " + maSoThue;
     }
 }

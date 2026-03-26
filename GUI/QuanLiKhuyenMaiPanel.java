@@ -1,3 +1,5 @@
+package GUI;
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
@@ -60,7 +62,7 @@ public class QuanLiKhuyenMaiPanel extends JPanel {
 
         txtMaKM = new JTextField();
         txtTenCT = new JTextField();
-        cboLoaiKM = new JComboBox<>(new String[]{"Giảm phần trăm", "Mua X tặng Y"});
+        cboLoaiKM = new JComboBox<>(new String[] { "Giảm phần trăm", "Mua X tặng Y" });
         spnPhanTram = new JSpinner(new SpinnerNumberModel(10, 1, 100, 1));
         spnDieuKien = new JSpinner(new SpinnerNumberModel(100000, 0, 999999999, 10000));
         spnSoLuongMua = new JSpinner(new SpinnerNumberModel(1, 1, 100, 1));
@@ -123,9 +125,8 @@ public class QuanLiKhuyenMaiPanel extends JPanel {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBackground(Color.WHITE);
         panel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(229, 231, 235), 1, true),
-            BorderFactory.createEmptyBorder(16, 18, 14, 18)
-        ));
+                BorderFactory.createLineBorder(new Color(229, 231, 235), 1, true),
+                BorderFactory.createEmptyBorder(16, 18, 14, 18)));
 
         txtMaKM.setFont(normalFont);
         txtMaKM.setEditable(false);
@@ -270,9 +271,8 @@ public class QuanLiKhuyenMaiPanel extends JPanel {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(Color.WHITE);
         panel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(229, 231, 235), 1, true),
-            BorderFactory.createEmptyBorder(0, 0, 0, 0)
-        ));
+                BorderFactory.createLineBorder(new Color(229, 231, 235), 1, true),
+                BorderFactory.createEmptyBorder(0, 0, 0, 0)));
 
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
@@ -284,9 +284,9 @@ public class QuanLiKhuyenMaiPanel extends JPanel {
 
     private DefaultTableModel buildTableModel() {
         return new DefaultTableModel(
-            new String[]{"Mã KM", "Chương trình", "Loại", "Nội dung", "Ngày bắt đầu", "Ngày kết thúc", "Tình trạng"},
-            0
-        ) {
+                new String[] { "Mã KM", "Chương trình", "Loại", "Nội dung", "Ngày bắt đầu", "Ngày kết thúc",
+                        "Tình trạng" },
+                0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
@@ -395,13 +395,15 @@ public class QuanLiKhuyenMaiPanel extends JPanel {
         reloadDsFromBus();
         renderTable();
         selectByMa(newId);
-        JOptionPane.showMessageDialog(this, "Thêm khuyến mãi thành công!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(this, "Thêm khuyến mãi thành công!", "Thông báo",
+                JOptionPane.INFORMATION_MESSAGE);
     }
 
     private void suaKhuyenMai() {
         int selectedRow = table.getSelectedRow();
         if (selectedRow < 0) {
-            JOptionPane.showMessageDialog(this, "Vui lòng chọn mã khuyến mãi cần sửa.", "Thông báo", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn mã khuyến mãi cần sửa.", "Thông báo",
+                    JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -421,24 +423,25 @@ public class QuanLiKhuyenMaiPanel extends JPanel {
         reloadDsFromBus();
         renderTable();
         selectByMa(maKM);
-        JOptionPane.showMessageDialog(this, "Cập nhật khuyến mãi thành công!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(this, "Cập nhật khuyến mãi thành công!", "Thông báo",
+                JOptionPane.INFORMATION_MESSAGE);
     }
 
     private void xoaKhuyenMai() {
         int selectedRow = table.getSelectedRow();
         if (selectedRow < 0) {
-            JOptionPane.showMessageDialog(this, "Vui lòng chọn mã khuyến mãi cần xóa.", "Thông báo", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn mã khuyến mãi cần xóa.", "Thông báo",
+                    JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         KhuyenMaiVM km = dsKhuyenMai.get(selectedRow);
         int confirm = JOptionPane.showConfirmDialog(
-            this,
-            "Bạn có chắc muốn xóa chương trình \"" + km.tenCT + "\"?",
-            "Xác nhận xóa",
-            JOptionPane.YES_NO_OPTION,
-            JOptionPane.QUESTION_MESSAGE
-        );
+                this,
+                "Bạn có chắc muốn xóa chương trình \"" + km.tenCT + "\"?",
+                "Xác nhận xóa",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE);
         if (confirm != JOptionPane.YES_OPTION) {
             return;
         }
@@ -450,11 +453,13 @@ public class QuanLiKhuyenMaiPanel extends JPanel {
         reloadDsFromBus();
         renderTable();
         lamMoiForm();
-        JOptionPane.showMessageDialog(this, "Đã xóa chương trình khuyến mãi.", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(this, "Đã xóa chương trình khuyến mãi.", "Thông báo",
+                JOptionPane.INFORMATION_MESSAGE);
     }
 
     private void fillFormFromRow(int row) {
-        if (row < 0 || row >= dsKhuyenMai.size()) return;
+        if (row < 0 || row >= dsKhuyenMai.size())
+            return;
         KhuyenMaiVM km = dsKhuyenMai.get(row);
         txtMaKM.setText(String.valueOf(km.maKM));
         txtTenCT.setText(km.tenCT);
@@ -479,8 +484,10 @@ public class QuanLiKhuyenMaiPanel extends JPanel {
         spnDieuKien.setValue(100000);
         spnSoLuongMua.setValue(1);
         spnSoLuongTang.setValue(1);
-        if (cboBanhMua.getItemCount() > 0) cboBanhMua.setSelectedIndex(0);
-        if (cboBanhTang.getItemCount() > 0) cboBanhTang.setSelectedIndex(0);
+        if (cboBanhMua.getItemCount() > 0)
+            cboBanhMua.setSelectedIndex(0);
+        if (cboBanhTang.getItemCount() > 0)
+            cboBanhTang.setSelectedIndex(0);
         updateLoaiKhuyenMaiUI();
         dtNgayBatDau.setDate(new Date());
         dtNgayKetThuc.setDate(new Date());
@@ -554,14 +561,14 @@ public class QuanLiKhuyenMaiPanel extends JPanel {
     private void renderTable() {
         tableModel.setRowCount(0);
         for (KhuyenMaiVM km : dsKhuyenMai) {
-            tableModel.addRow(new Object[]{
-                km.maKM,
-                km.tenCT,
-                km.loaiKhuyenMai,
-                getNoiDungKhuyenMai(km),
-                dateFormat.format(km.ngayBatDau),
-                dateFormat.format(km.ngayKetThuc),
-                getTinhTrang(km)
+            tableModel.addRow(new Object[] {
+                    km.maKM,
+                    km.tenCT,
+                    km.loaiKhuyenMai,
+                    getNoiDungKhuyenMai(km),
+                    dateFormat.format(km.ngayBatDau),
+                    dateFormat.format(km.ngayKetThuc),
+                    getTinhTrang(km)
             });
         }
     }
@@ -585,8 +592,10 @@ public class QuanLiKhuyenMaiPanel extends JPanel {
 
     private String getTinhTrang(KhuyenMaiVM km) {
         Date now = new Date();
-        if (now.before(km.ngayBatDau)) return "Chưa hiệu lực";
-        if (now.after(km.ngayKetThuc)) return "Không hiệu lực";
+        if (now.before(km.ngayBatDau))
+            return "Chưa hiệu lực";
+        if (now.after(km.ngayKetThuc))
+            return "Không hiệu lực";
         return "Có hiệu lực";
     }
 
@@ -742,8 +751,8 @@ public class QuanLiKhuyenMaiPanel extends JPanel {
         }
 
         KhuyenMaiVM(int maKM, String tenCT, String loaiKhuyenMai, int phanTramGiam, double dieuKienToiThieu,
-                    int soLuongMua, int soLuongTang, int maBanhMua, String tenBanhMua,
-                    int maBanhTang, String tenBanhTang, Date ngayBatDau, Date ngayKetThuc) {
+                int soLuongMua, int soLuongTang, int maBanhMua, String tenBanhMua,
+                int maBanhTang, String tenBanhTang, Date ngayBatDau, Date ngayKetThuc) {
             this.maKM = maKM;
             this.tenCT = tenCT;
             this.loaiKhuyenMai = loaiKhuyenMai;
@@ -788,9 +797,8 @@ public class QuanLiKhuyenMaiPanel extends JPanel {
             txtDate.setEditable(false);
             txtDate.setHorizontalAlignment(JTextField.LEFT);
             txtDate.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(209, 213, 219), 1, true),
-                BorderFactory.createEmptyBorder(7, 10, 7, 10)
-            ));
+                    BorderFactory.createLineBorder(new Color(209, 213, 219), 1, true),
+                    BorderFactory.createEmptyBorder(7, 10, 7, 10)));
 
             btnPick = new JButton("...");
             btnPick.setPreferredSize(new Dimension(34, 30));
@@ -834,122 +842,124 @@ public class QuanLiKhuyenMaiPanel extends JPanel {
             Calendar cal = Calendar.getInstance();
             cal.setTime(selectedDate);
 
-			JComboBox<String> cboMonth = createMonthComboBox(cal);
-			JSpinner spnYear = createYearSpinner(cal);
-			JPanel top = createTopPanel(cboMonth, spnYear);
-			JPanel calendarPanel = createCalendarPanel();
-			JPanel bottom = createBottomPanel(dialog);
+            JComboBox<String> cboMonth = createMonthComboBox(cal);
+            JSpinner spnYear = createYearSpinner(cal);
+            JPanel top = createTopPanel(cboMonth, spnYear);
+            JPanel calendarPanel = createCalendarPanel();
+            JPanel bottom = createBottomPanel(dialog);
 
-			Runnable renderCalendar = () -> renderCalendar(calendarPanel, cboMonth, spnYear, dialog);
+            Runnable renderCalendar = () -> renderCalendar(calendarPanel, cboMonth, spnYear, dialog);
 
-			cboMonth.addActionListener(e -> renderCalendar.run());
-			spnYear.addChangeListener(e -> renderCalendar.run());
-			renderCalendar.run();
+            cboMonth.addActionListener(e -> renderCalendar.run());
+            spnYear.addChangeListener(e -> renderCalendar.run());
+            renderCalendar.run();
 
-			dialog.add(top, BorderLayout.NORTH);
-			dialog.add(calendarPanel, BorderLayout.CENTER);
-			dialog.add(bottom, BorderLayout.SOUTH);
-			dialog.setVisible(true);
-		}
+            dialog.add(top, BorderLayout.NORTH);
+            dialog.add(calendarPanel, BorderLayout.CENTER);
+            dialog.add(bottom, BorderLayout.SOUTH);
+            dialog.setVisible(true);
+        }
 
-		private JComboBox<String> createMonthComboBox(Calendar currentCal) {
-			JComboBox<String> cboMonth = new JComboBox<>(new String[]{
-				"Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6",
-				"Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"
-			});
-			cboMonth.setSelectedIndex(currentCal.get(Calendar.MONTH));
-			return cboMonth;
-		}
+        private JComboBox<String> createMonthComboBox(Calendar currentCal) {
+            JComboBox<String> cboMonth = new JComboBox<>(new String[] {
+                    "Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6",
+                    "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"
+            });
+            cboMonth.setSelectedIndex(currentCal.get(Calendar.MONTH));
+            return cboMonth;
+        }
 
-		private JSpinner createYearSpinner(Calendar currentCal) {
-			SpinnerNumberModel yearModel = new SpinnerNumberModel(currentCal.get(Calendar.YEAR), 2000, 2100, 1);
+        private JSpinner createYearSpinner(Calendar currentCal) {
+            SpinnerNumberModel yearModel = new SpinnerNumberModel(currentCal.get(Calendar.YEAR), 2000, 2100, 1);
             JSpinner spnYear = new JSpinner(yearModel);
             spnYear.setPreferredSize(new Dimension(80, 28));
             JSpinner.NumberEditor yearEditor = new JSpinner.NumberEditor(spnYear, "#");
             spnYear.setEditor(yearEditor);
-			return spnYear;
-		}
+            return spnYear;
+        }
 
-		private JPanel createTopPanel(JComboBox<String> cboMonth, JSpinner spnYear) {
-			JPanel top = new JPanel(new FlowLayout(FlowLayout.CENTER, 6, 8));
+        private JPanel createTopPanel(JComboBox<String> cboMonth, JSpinner spnYear) {
+            JPanel top = new JPanel(new FlowLayout(FlowLayout.CENTER, 6, 8));
             top.add(cboMonth);
             top.add(spnYear);
-			return top;
-		}
+            return top;
+        }
 
-		private JPanel createCalendarPanel() {
+        private JPanel createCalendarPanel() {
             JPanel calendarPanel = new JPanel(new GridLayout(7, 7, 2, 2));
             calendarPanel.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 8));
-			return calendarPanel;
-		}
+            return calendarPanel;
+        }
 
-		private void renderCalendar(JPanel calendarPanel, JComboBox<String> cboMonth, JSpinner spnYear, JDialog dialog) {
-			calendarPanel.removeAll();
-			renderCalendarHeader(calendarPanel);
-			renderCalendarDays(calendarPanel, cboMonth, spnYear, dialog);
-			fillCalendarPlaceholders(calendarPanel);
-			calendarPanel.revalidate();
-			calendarPanel.repaint();
-		}
+        private void renderCalendar(JPanel calendarPanel, JComboBox<String> cboMonth, JSpinner spnYear,
+                JDialog dialog) {
+            calendarPanel.removeAll();
+            renderCalendarHeader(calendarPanel);
+            renderCalendarDays(calendarPanel, cboMonth, spnYear, dialog);
+            fillCalendarPlaceholders(calendarPanel);
+            calendarPanel.revalidate();
+            calendarPanel.repaint();
+        }
 
-		private void renderCalendarHeader(JPanel calendarPanel) {
-			String[] headers = {"CN", "T2", "T3", "T4", "T5", "T6", "T7"};
-			for (String headerText : headers) {
-				JLabel lbl = new JLabel(headerText, SwingConstants.CENTER);
-				lbl.setFont(new Font("Segoe UI", Font.BOLD, 12));
-				lbl.setForeground(new Color(75, 85, 99));
-				calendarPanel.add(lbl);
-			}
-		}
+        private void renderCalendarHeader(JPanel calendarPanel) {
+            String[] headers = { "CN", "T2", "T3", "T4", "T5", "T6", "T7" };
+            for (String headerText : headers) {
+                JLabel lbl = new JLabel(headerText, SwingConstants.CENTER);
+                lbl.setFont(new Font("Segoe UI", Font.BOLD, 12));
+                lbl.setForeground(new Color(75, 85, 99));
+                calendarPanel.add(lbl);
+            }
+        }
 
-		private void renderCalendarDays(JPanel calendarPanel, JComboBox<String> cboMonth, JSpinner spnYear, JDialog dialog) {
-			Calendar view = Calendar.getInstance();
-			view.set(Calendar.YEAR, (Integer) spnYear.getValue());
-			view.set(Calendar.MONTH, cboMonth.getSelectedIndex());
-			view.set(Calendar.DAY_OF_MONTH, 1);
+        private void renderCalendarDays(JPanel calendarPanel, JComboBox<String> cboMonth, JSpinner spnYear,
+                JDialog dialog) {
+            Calendar view = Calendar.getInstance();
+            view.set(Calendar.YEAR, (Integer) spnYear.getValue());
+            view.set(Calendar.MONTH, cboMonth.getSelectedIndex());
+            view.set(Calendar.DAY_OF_MONTH, 1);
 
-			int firstDay = view.get(Calendar.DAY_OF_WEEK);
-			int maxDay = view.getActualMaximum(Calendar.DAY_OF_MONTH);
+            int firstDay = view.get(Calendar.DAY_OF_WEEK);
+            int maxDay = view.getActualMaximum(Calendar.DAY_OF_MONTH);
 
-			for (int i = 1; i < firstDay; i++) {
-				calendarPanel.add(new JLabel(""));
-			}
+            for (int i = 1; i < firstDay; i++) {
+                calendarPanel.add(new JLabel(""));
+            }
 
-			for (int day = 1; day <= maxDay; day++) {
-				calendarPanel.add(createDayButton(day, cboMonth, spnYear, dialog));
-			}
-		}
+            for (int day = 1; day <= maxDay; day++) {
+                calendarPanel.add(createDayButton(day, cboMonth, spnYear, dialog));
+            }
+        }
 
-		private JButton createDayButton(int day, JComboBox<String> cboMonth, JSpinner spnYear, JDialog dialog) {
-			JButton btnDay = new JButton(String.valueOf(day));
-			btnDay.setFocusPainted(false);
-			btnDay.setMargin(new Insets(0, 0, 0, 0));
-			btnDay.setBackground(Color.WHITE);
-			btnDay.setCursor(new Cursor(Cursor.HAND_CURSOR));
-			btnDay.addActionListener(e -> {
-				Date pickedDate = buildDate((Integer) spnYear.getValue(), cboMonth.getSelectedIndex(), day);
-				setDate(pickedDate);
-				dialog.dispose();
-			});
-			return btnDay;
-		}
+        private JButton createDayButton(int day, JComboBox<String> cboMonth, JSpinner spnYear, JDialog dialog) {
+            JButton btnDay = new JButton(String.valueOf(day));
+            btnDay.setFocusPainted(false);
+            btnDay.setMargin(new Insets(0, 0, 0, 0));
+            btnDay.setBackground(Color.WHITE);
+            btnDay.setCursor(new Cursor(Cursor.HAND_CURSOR));
+            btnDay.addActionListener(e -> {
+                Date pickedDate = buildDate((Integer) spnYear.getValue(), cboMonth.getSelectedIndex(), day);
+                setDate(pickedDate);
+                dialog.dispose();
+            });
+            return btnDay;
+        }
 
-		private Date buildDate(int year, int monthIndex, int day) {
-			Calendar picked = Calendar.getInstance();
-			picked.set(Calendar.YEAR, year);
-			picked.set(Calendar.MONTH, monthIndex);
-			picked.set(Calendar.DAY_OF_MONTH, day);
-			return picked.getTime();
-		}
+        private Date buildDate(int year, int monthIndex, int day) {
+            Calendar picked = Calendar.getInstance();
+            picked.set(Calendar.YEAR, year);
+            picked.set(Calendar.MONTH, monthIndex);
+            picked.set(Calendar.DAY_OF_MONTH, day);
+            return picked.getTime();
+        }
 
-		private void fillCalendarPlaceholders(JPanel calendarPanel) {
-			while (calendarPanel.getComponentCount() < 49) {
-				calendarPanel.add(new JLabel(""));
-			}
-		}
+        private void fillCalendarPlaceholders(JPanel calendarPanel) {
+            while (calendarPanel.getComponentCount() < 49) {
+                calendarPanel.add(new JLabel(""));
+            }
+        }
 
-		private JPanel createBottomPanel(JDialog dialog) {
-			JPanel bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 8));
+        private JPanel createBottomPanel(JDialog dialog) {
+            JPanel bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 8));
             JButton btnToday = new JButton("Hôm nay");
             JButton btnClose = new JButton("Đóng");
             btnToday.addActionListener(e -> {
@@ -959,7 +969,7 @@ public class QuanLiKhuyenMaiPanel extends JPanel {
             btnClose.addActionListener(e -> dialog.dispose());
             bottom.add(btnToday);
             bottom.add(btnClose);
-			return bottom;
+            return bottom;
         }
     }
 }

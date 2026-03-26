@@ -24,7 +24,8 @@ public class BanhBus {
 
     public boolean add(BanhDTO b) {
         boolean result = dao.insert(b);
-        if (result) list.add(b);
+        if (result)
+            list.add(b);
         return result;
     }
 
@@ -51,7 +52,8 @@ public class BanhBus {
 
     public BanhDTO searchByID(int maBanh) {
         for (BanhDTO b : list) {
-            if (b.getMaBanh() == maBanh) return b;
+            if (b.getMaBanh() == maBanh)
+                return b;
         }
         return null;
     }

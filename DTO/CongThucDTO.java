@@ -1,18 +1,22 @@
 package DTO;
 
 public class CongThucDTO {
+    private int maCongThuc;
     private int maBanh;
     private int maDVT;
     private String cachLam;
 
-    // Constructor
     public CongThucDTO() {
-        this.maBanh = 0;
-        this.maDVT = 0;
-        this.cachLam = "";
     }
 
-    // Getter and Setter
+    public int getMaCongThuc() {
+        return maCongThuc;
+    }
+
+    public void setMaCongThuc(int maCongThuc) {
+        this.maCongThuc = maCongThuc;
+    }
+
     public int getMaBanh() {
         return maBanh;
     }
@@ -35,11 +39,5 @@ public class CongThucDTO {
 
     public void setCachLam(String cachLam) {
         this.cachLam = cachLam;
-    }
-
-    // toString
-    @Override
-    public String toString() {
-        return "Mã bánh: " + maBanh + " | Mã DVT: " + maDVT + " | Cách làm: " + cachLam;
     }
 }
