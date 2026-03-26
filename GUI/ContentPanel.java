@@ -1,12 +1,14 @@
 import java.awt.*;
 import javax.swing.*;
 
+// Panel nội dung trung tâm, quản lý chuyển trang bằng CardLayout
 public class ContentPanel extends JPanel {
     private CardLayout cardLayout;
     
     // Tên các trang
     public static final String TRANG_CHU = "home";
     public static final String BAN_HANG = "sale";
+    public static final String KHUYEN_MAI = "promotion";
     public static final String QUAN_LI_BANH = "cake";
     public static final String NHAN_SU = "staff";
     public static final String HOA_DON = "invoice";
@@ -21,6 +23,7 @@ public class ContentPanel extends JPanel {
         // Thêm các panel
         add(createTrangChuPanel(), TRANG_CHU);
         add(new QuanLiBanHangPanel(), BAN_HANG);
+        add(new QuanLiKhuyenMaiPanel(), KHUYEN_MAI);
         add(new QuanLiBanhPanel(), QUAN_LI_BANH);
         add(createPlaceholderPanel("👥 QUẢN LÍ NHÂN SỰ", "Chức năng đang phát triển..."), NHAN_SU);
         add(new QuanLiHoaDon(), HOA_DON);

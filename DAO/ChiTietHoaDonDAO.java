@@ -89,7 +89,7 @@ public class ChiTietHoaDonDAO {
     public ArrayList<ChiTietHoaDonDTO> timKiemTheoHoaDon(String maHD) {
         ArrayList<ChiTietHoaDonDTO> dscthd = new ArrayList<>();
         try {
-            String qry = "SELECT * FROM chitiethoadon WHERE MaHD = '" + maHD + "'";
+            String qry = "SELECT * FROM chitiethoadon WHERE maHD = '" + maHD + "'";
 
             st = conn.createStatement();
             rs = st.executeQuery(qry);
