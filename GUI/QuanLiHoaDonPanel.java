@@ -9,7 +9,7 @@ import java.awt.event.*;
 import java.util.Date;
 import java.text.SimpleDateFormat;
 
-public class QuanLiHoaDon extends JPanel {
+public class QuanLiHoaDonPanel extends JPanel {
     // Khai báo components
     private JTable tblInvoice, tblDetail;
     private DefaultTableModel invoiceModel, detailModel;
@@ -31,13 +31,13 @@ public class QuanLiHoaDon extends JPanel {
     private Font boldFont = new Font("Segoe UI", Font.BOLD, 14);
     private Font priceFont = new Font("Segoe UI", Font.BOLD, 18);
 
-    public QuanLiHoaDon() {
+    public QuanLiHoaDonPanel() {
         setBackground(bgColor);
         setLayout(new BorderLayout(15, 15));
         setBorder(BorderFactory.createEmptyBorder(25, 25, 25, 25));
 
         add(createHeader(), BorderLayout.NORTH);
-        // add(createTablePanel(), BorderLayout.CENTER);
+        add(createMainContent(), BorderLayout.CENTER);
         // add(createToolBar(), BorderLayout.SOUTH);
     }
 
@@ -100,9 +100,6 @@ public class QuanLiHoaDon extends JPanel {
             BorderFactory.createEmptyBorder(15, 15, 15, 15)
         )));
 
-        JPanel headerPanel = new JPanel(new BorderLayout(10, 0));
-        headerPanel.setBackground(cardColor);
-
         JLabel lblTitle = new JLabel("🧾 DANH SÁCH HÓA ĐƠN");
         lblTitle.setFont(headerFont);
         lblTitle.setForeground(primaryDark);
@@ -118,11 +115,68 @@ public class QuanLiHoaDon extends JPanel {
         styleTableHeader(tblInvoice);
 
         tblInvoice.getColumnModel().getColumn(0).setPreferredWidth(40);
-        tblInvoice.getColumnModel().getColumn(1).setPreferredWidth(120);
+        tblInvoice.getColumnModel().getColumn(1).setPreferredWidth(70);
         tblInvoice.getColumnModel().getColumn(2).setPreferredWidth(50);
-        tblInvoice.getColumnModel().getColumn(3).setPreferredWidth(50);
+        tblInvoice.getColumnModel().getColumn(3).setPreferredWidth(70);
         tblInvoice.getColumnModel().getColumn(4).setPreferredWidth(120);
         
+        JScrollPane scrollPane = new JScrollPane(tblInvoice);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+
+        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        btnPanel.setBackground(cardColor);
+
+        btnAdd = createStyledButton("+ Thêm mới", new Color(34, 197, 94), 130);
+        btnEdit = createStyledButton("✎ Chỉnh sửa", new Color(59, 130, 246), 130);
+        btnDelete = createStyledButton("✕ Xóa", new Color(239, 68, 68), 100);
+        btnRefresh = createStyledButton("↻ Làm mới", new Color(107, 114, 128), 120);
+
+        btnAdd.addActionListener(e -> showAddDialog());
+        btnEdit.addActionListener(e -> showEditDialog());
+        btnDelete.addActionListener(e -> deleteSelected());
+        btnRefresh.addActionListener(e -> refreshTable());
+
+        btnPanel.add(btnAdd);
+        btnPanel.add(btnEdit);
+        btnPanel.add(btnDelete);
+        btnPanel.add(btnRefresh);
+
+        panel.add(lblTitle, BorderLayout.NORTH);
+        panel.add(scrollPane, BorderLayout.CENTER);
+        panel.add(btnPanel, BorderLayout.SOUTH);
+
+        return panel;
+    }
+
+    private JPanel createDetailPanel() {
+        JPanel panel = new JPanel(new BorderLayout(0, 10));
+        panel.setBackground(bgColor);
+        panel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(229, 231, 235)),
+            BorderFactory.createEmptyBorder(15, 15, 15, 15)
+        ));
+
+        JLabel lblTitle = new JLabel("🧾 DANH SÁCH CHI TIẾT");
+        lblTitle.setFont(headerFont);
+        lblTitle.setForeground(primaryDark);
+
+        String[] cols = {"Mã HD", "Mã bánh", "Số lượng", "Đơn giá", "Thành tiền", "Điểm"};
+        detailModel = new DefaultTableModel(cols, 0);
+
+        tblDetail = new JTable(detailModel);
+        tblDetail.setRowHeight(40);
+        tblDetail.setFont(normalFont);
+        tblDetail.setGridColor(new Color(243, 244, 246));
+        tblDetail.setSelectionBackground(primaryLight);
+        styleTableHeader(tblDetail);
+
+        tblDetail.getColumnModel().getColumn(0).setPreferredWidth(40);
+        tblDetail.getColumnModel().getColumn(1).setPreferredWidth(70);
+        tblDetail.getColumnModel().getColumn(2).setPreferredWidth(70);
+        tblDetail.getColumnModel().getColumn(3).setPreferredWidth(60);
+        tblDetail.getColumnModel().getColumn(4).setPreferredWidth(100);
+        tblDetail.getColumnModel().getColumn(5).setPreferredWidth(50);
+
         JScrollPane scrollPane = new JScrollPane(tblDetail);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
 
@@ -144,16 +198,10 @@ public class QuanLiHoaDon extends JPanel {
         btnPanel.add(btnDelete);
         btnPanel.add(btnRefresh);
 
-        headerPanel.add(lblTitle, BorderLayout.NORTH);
-        headerPanel.add(scrollPane, BorderLayout.CENTER);
-        headerPanel.add(btnPanel, BorderLayout.SOUTH);
+        panel.add(lblTitle, BorderLayout.NORTH);
+        panel.add(scrollPane, BorderLayout.CENTER);
+        panel.add(btnPanel, BorderLayout.SOUTH);
 
-        return panel;
-    }
-
-    private JPanel createDetailPanel() {
-        JPanel panel = new JPanel();
-        // TODO
         return panel;
     }
 
@@ -213,7 +261,7 @@ public class QuanLiHoaDon extends JPanel {
     }
 
     private void showAddDialog() {
-        JDialog dialog = createHoaDonDialog("Thêm bánh mới", null);
+        JDialog dialog = createHoaDonDialog("Thêm hóa đơn mới", null);
         dialog.setVisible(true);
     }
     
@@ -221,7 +269,7 @@ public class QuanLiHoaDon extends JPanel {
         int selectedRow = tblInvoice.getSelectedRow();
         if (selectedRow == -1) {
             JOptionPane.showMessageDialog(this, 
-                "Vui lòng chọn bánh cần sửa!", 
+                "Vui lòng chọn hóa đơn cần sửa!", 
                 "Thông báo", 
                 JOptionPane.WARNING_MESSAGE);
             return;
@@ -233,7 +281,7 @@ public class QuanLiHoaDon extends JPanel {
             rowData[i] = invoiceModel.getValueAt(selectedRow, i);
         }
         
-        JDialog dialog = createHoaDonDialog("Chỉnh sửa bánh", rowData);
+        JDialog dialog = createHoaDonDialog("Chỉnh sửa hóa đơn", rowData);
         dialog.setVisible(true);
     }
     
@@ -252,7 +300,7 @@ public class QuanLiHoaDon extends JPanel {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(8, 5, 8, 5);
         
-        String[] labels = {"Mã bánh:", "Tên bánh:", "Số lượng:", "Đơn vị tính:", "Loại bánh:", "Hãng SX:"};
+        String[] labels = {"Mã HD:", "Ngày lập HD:", "Mã nhân viên:", "Mã khách hàng:", "Thành tiền:"};
         JTextField[] fields = new JTextField[labels.length];
         
         for (int i = 0; i < labels.length; i++) {
@@ -295,8 +343,8 @@ public class QuanLiHoaDon extends JPanel {
             // TODO: Validate và lưu dữ liệu
             if (data == null) {
                 // Thêm mới
-                Object[] newRow = new Object[fields.length];
-                for (int i = 0; i < fields.length; i++) {
+                Object[] newRow = new Object[invoiceModel.getColumnCount()];
+                for (int i = 0; i < newRow.length; i++) {
                     newRow[i] = fields[i].getText();
                 }
                 invoiceModel.addRow(newRow);

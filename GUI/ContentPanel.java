@@ -26,7 +26,7 @@ public class ContentPanel extends JPanel {
         add(new QuanLiKhuyenMaiPanel(), KHUYEN_MAI);
         add(new QuanLiBanhPanel(), QUAN_LI_BANH);
         add(createPlaceholderPanel("👥 QUẢN LÍ NHÂN SỰ", "Chức năng đang phát triển..."), NHAN_SU);
-        add(new QuanLiHoaDon(), HOA_DON);
+        add(new QuanLiHoaDonPanel(), HOA_DON);
         add(new ThongKePanel(), THONG_KE);
         // add(createPlaceholderPanel("📊 THỐNG KÊ", "Chức năng đang phát triển..."), THONG_KE);
         add(createPlaceholderPanel("⚙️ CÀI ĐẶT", "Chức năng đang phát triển..."), CAI_DAT);
