@@ -1,4 +1,4 @@
-package GUI;
+
 
 import BUS.ChuongTrinhKhuyenMaiBUS;
 import DTO.ChuongTrinhKhuyenMaiDTO;

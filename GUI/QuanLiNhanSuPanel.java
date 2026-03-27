@@ -1,11 +1,12 @@
-
+// package GUI;
 
 import javax.swing.*;
 import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.geom.RoundRectangle2D;
 
-public class QuanLiBanhPanel extends JPanel {
+public class QuanLiNhanSuPanel extends JPanel {
 
     // Khai báo components
     private JTable table;
@@ -24,7 +25,7 @@ public class QuanLiBanhPanel extends JPanel {
     private Font normalFont = new Font("Segoe UI", Font.PLAIN, 14);
     private Font boldFont = new Font("Segoe UI", Font.BOLD, 14);
 
-    public QuanLiBanhPanel() {
+    public QuanLiNhanSuPanel() {
         setBackground(bgColor);
         setLayout(new BorderLayout(15, 15));
         setBorder(BorderFactory.createEmptyBorder(25, 25, 25, 25));
@@ -34,8 +35,7 @@ public class QuanLiBanhPanel extends JPanel {
         add(createTablePanel(), BorderLayout.CENTER);
         add(createToolbar(), BorderLayout.SOUTH);
 
-        // Load dữ liệu mẫu
-        loadSampleData();
+        // Table bắt đầu trống
     }
 
     // ==================== HEADER ====================
@@ -50,14 +50,14 @@ public class QuanLiBanhPanel extends JPanel {
 
         JLabel icon = new JLabel();
         try {
-            ImageIcon cakeIcon = new ImageIcon("img/icon/cake.png");
-            Image img = cakeIcon.getImage().getScaledInstance(32, 32, Image.SCALE_SMOOTH);
+            ImageIcon userIcon = new ImageIcon("img/icon/user.png");
+            Image img = userIcon.getImage().getScaledInstance(32, 32, Image.SCALE_SMOOTH);
             icon.setIcon(new ImageIcon(img));
         } catch (Exception e) {
-            icon.setText("🎂");
+            icon.setText("👤");
         }
 
-        JLabel title = new JLabel("  QUẢN LÍ BÁNH");
+        JLabel title = new JLabel("  QUẢN LÍ NHÂN SỰ");
         title.setFont(titleFont);
         title.setForeground(primaryColor);
 
@@ -79,12 +79,12 @@ public class QuanLiBanhPanel extends JPanel {
                 BorderFactory.createEmptyBorder(8, 12, 8, 12)));
 
         // Placeholder
-        txtSearch.setText("Nhập tên bánh...");
+        txtSearch.setText("Nhập tên nhân viên...");
         txtSearch.setForeground(Color.GRAY);
         txtSearch.addFocusListener(new FocusAdapter() {
             @Override
             public void focusGained(FocusEvent e) {
-                if (txtSearch.getText().equals("Nhập tên bánh...")) {
+                if (txtSearch.getText().equals("Nhập tên nhân viên...")) {
                     txtSearch.setText("");
                     txtSearch.setForeground(Color.BLACK);
                 }
@@ -93,7 +93,7 @@ public class QuanLiBanhPanel extends JPanel {
             @Override
             public void focusLost(FocusEvent e) {
                 if (txtSearch.getText().isEmpty()) {
-                    txtSearch.setText("Nhập tên bánh...");
+                    txtSearch.setText("Nhập tên nhân viên...");
                     txtSearch.setForeground(Color.GRAY);
                 }
             }
@@ -120,7 +120,7 @@ public class QuanLiBanhPanel extends JPanel {
                 BorderFactory.createEmptyBorder(0, 0, 0, 0)));
 
         // Định nghĩa cột
-        String[] columns = { "Mã bánh", "Tên bánh", "Số lượng", "Đơn vị tính", "Loại bánh", "Hãng SX" };
+        String[] columns = { "Mã NV", "Tên nhân viên", "Chức vụ", "Số điện thoại", "Email", "Lương" };
 
         // Tạo model (không cho edit trực tiếp)
         tableModel = new DefaultTableModel(columns, 0) {
@@ -162,15 +162,14 @@ public class QuanLiBanhPanel extends JPanel {
         DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
         centerRenderer.setHorizontalAlignment(JLabel.CENTER);
         table.getColumnModel().getColumn(0).setCellRenderer(centerRenderer); // Mã
-        table.getColumnModel().getColumn(2).setCellRenderer(centerRenderer); // Số lượng
 
         // Set độ rộng cột
-        table.getColumnModel().getColumn(0).setPreferredWidth(80); // Mã
-        table.getColumnModel().getColumn(1).setPreferredWidth(200); // Tên
-        table.getColumnModel().getColumn(2).setPreferredWidth(100); // Số lượng
-        table.getColumnModel().getColumn(3).setPreferredWidth(100); // Đơn vị
-        table.getColumnModel().getColumn(4).setPreferredWidth(120); // Loại
-        table.getColumnModel().getColumn(5).setPreferredWidth(120); // Hãng
+        table.getColumnModel().getColumn(0).setPreferredWidth(80); // Mã NV
+        table.getColumnModel().getColumn(1).setPreferredWidth(150); // Tên
+        table.getColumnModel().getColumn(2).setPreferredWidth(130); // Chức vụ
+        table.getColumnModel().getColumn(3).setPreferredWidth(130); // Số điện thoại
+        table.getColumnModel().getColumn(4).setPreferredWidth(150); // Email
+        table.getColumnModel().getColumn(5).setPreferredWidth(120); // Lương
 
         // Alternating row colors
         table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
@@ -185,8 +184,8 @@ public class QuanLiBanhPanel extends JPanel {
                     c.setBackground(row % 2 == 0 ? Color.WHITE : new Color(249, 250, 251));
                 }
 
-                // Căn giữa cột 0 và 2
-                if (column == 0 || column == 2) {
+                // Căn giữa cột 0
+                if (column == 0) {
                     ((JLabel) c).setHorizontalAlignment(JLabel.CENTER);
                 } else {
                     ((JLabel) c).setHorizontalAlignment(JLabel.LEFT);
@@ -236,7 +235,7 @@ public class QuanLiBanhPanel extends JPanel {
         JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
         rightPanel.setBackground(bgColor);
 
-        JLabel lblTotal = new JLabel("Tổng: " + tableModel.getRowCount() + " bánh");
+        JLabel lblTotal = new JLabel("Tổng: " + tableModel.getRowCount() + " nhân viên");
         lblTotal.setFont(normalFont);
         lblTotal.setForeground(new Color(107, 114, 128));
 
@@ -289,27 +288,9 @@ public class QuanLiBanhPanel extends JPanel {
         return btn;
     }
 
-    private void loadSampleData() {
-        // Dữ liệu mẫu
-        Object[][] data = {
-                { 1, "Bánh kem socola", 50, "Cái", "Bánh kem", "ABC Bakery" },
-                { 2, "Bánh mì bơ tỏi", 100, "Cái", "Bánh mì", "XYZ Shop" },
-                { 3, "Bánh su kem", 75, "Hộp", "Bánh ngọt", "ABC Bakery" },
-                { 4, "Bánh croissant", 30, "Cái", "Bánh mì", "Paris Bakery" },
-                { 5, "Bánh phô mai", 45, "Cái", "Bánh kem", "Sweet Home" },
-                { 6, "Bánh cupcake", 80, "Hộp", "Bánh ngọt", "ABC Bakery" },
-                { 7, "Bánh tiramisu", 25, "Cái", "Bánh kem", "Italy House" },
-                { 8, "Bánh tart trứng", 60, "Cái", "Bánh ngọt", "XYZ Shop" },
-        };
-
-        for (Object[] row : data) {
-            tableModel.addRow(row);
-        }
-    }
-
     // ==================== ACTIONS ====================
     private void showAddDialog() {
-        JDialog dialog = createBanhDialog("Thêm bánh mới", null);
+        JDialog dialog = createNhanSuDialog("Thêm nhân viên mới", null);
         dialog.setVisible(true);
     }
 
@@ -317,7 +298,7 @@ public class QuanLiBanhPanel extends JPanel {
         int selectedRow = table.getSelectedRow();
         if (selectedRow == -1) {
             JOptionPane.showMessageDialog(this,
-                    "Vui lòng chọn bánh cần sửa!",
+                    "Vui lòng chọn nhân viên cần sửa!",
                     "Thông báo",
                     JOptionPane.WARNING_MESSAGE);
             return;
@@ -329,13 +310,13 @@ public class QuanLiBanhPanel extends JPanel {
             rowData[i] = tableModel.getValueAt(selectedRow, i);
         }
 
-        JDialog dialog = createBanhDialog("Chỉnh sửa bánh", rowData);
+        JDialog dialog = createNhanSuDialog("Chỉnh sửa nhân viên", rowData);
         dialog.setVisible(true);
     }
 
-    private JDialog createBanhDialog(String title, Object[] data) {
+    private JDialog createNhanSuDialog(String title, Object[] data) {
         JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), title, true);
-        dialog.setSize(450, 400);
+        dialog.setSize(500, 450);
         dialog.setLocationRelativeTo(this);
         dialog.setLayout(new BorderLayout());
 
@@ -348,7 +329,7 @@ public class QuanLiBanhPanel extends JPanel {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(8, 5, 8, 5);
 
-        String[] labels = { "Mã bánh:", "Tên bánh:", "Số lượng:", "Đơn vị tính:", "Loại bánh:", "Hãng SX:" };
+        String[] labels = { "Mã NV:", "Tên nhân viên:", "Chức vụ:", "Số điện thoại:", "Email:", "Lương:" };
         JTextField[] fields = new JTextField[labels.length];
 
         for (int i = 0; i < labels.length; i++) {
@@ -364,7 +345,7 @@ public class QuanLiBanhPanel extends JPanel {
             gbc.weightx = 0.7;
 
             fields[i] = new JTextField();
-            fields[i].setPreferredSize(new Dimension(200, 35));
+            fields[i].setPreferredSize(new Dimension(250, 35));
             fields[i].setFont(normalFont);
             fields[i].setBorder(BorderFactory.createCompoundBorder(
                     BorderFactory.createLineBorder(new Color(209, 213, 219)),
@@ -374,7 +355,7 @@ public class QuanLiBanhPanel extends JPanel {
             if (data != null && i < data.length) {
                 fields[i].setText(String.valueOf(data[i]));
                 if (i == 0)
-                    fields[i].setEditable(false); // Không sửa mã
+                    fields[i].setEditable(false); // Không sửa mã NV
             }
 
             formPanel.add(fields[i], gbc);
@@ -388,7 +369,13 @@ public class QuanLiBanhPanel extends JPanel {
         JButton btnCancel = createStyledButton("Hủy", new Color(107, 114, 128), 100);
 
         btnSave.addActionListener(e -> {
-            // TODO: Validate và lưu dữ liệu
+            // Validate dữ liệu
+            if (fields[0].getText().trim().isEmpty() ||
+                fields[1].getText().trim().isEmpty()) {
+                JOptionPane.showMessageDialog(dialog, "Vui lòng điền đầy đủ thông tin!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
             if (data == null) {
                 // Thêm mới
                 Object[] newRow = new Object[fields.length];
@@ -396,7 +383,7 @@ public class QuanLiBanhPanel extends JPanel {
                     newRow[i] = fields[i].getText();
                 }
                 tableModel.addRow(newRow);
-                JOptionPane.showMessageDialog(dialog, "Thêm bánh thành công!", "Thông báo",
+                JOptionPane.showMessageDialog(dialog, "Thêm nhân viên thành công!", "Thông báo",
                         JOptionPane.INFORMATION_MESSAGE);
             } else {
                 // Cập nhật
@@ -425,15 +412,15 @@ public class QuanLiBanhPanel extends JPanel {
         int selectedRow = table.getSelectedRow();
         if (selectedRow == -1) {
             JOptionPane.showMessageDialog(this,
-                    "Vui lòng chọn bánh cần xóa!",
+                    "Vui lòng chọn nhân viên cần xóa!",
                     "Thông báo",
                     JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        String tenBanh = tableModel.getValueAt(selectedRow, 1).toString();
+        String tenNhanVien = tableModel.getValueAt(selectedRow, 1).toString();
         int confirm = JOptionPane.showConfirmDialog(this,
-                "Bạn có chắc muốn xóa \"" + tenBanh + "\"?",
+                "Bạn có chắc muốn xóa \"" + tenNhanVien + "\"?",
                 "Xác nhận xóa",
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.QUESTION_MESSAGE);
@@ -446,7 +433,6 @@ public class QuanLiBanhPanel extends JPanel {
 
     private void refreshTable() {
         tableModel.setRowCount(0);
-        loadSampleData();
         JOptionPane.showMessageDialog(this, "Đã làm mới dữ liệu!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
     }
 
