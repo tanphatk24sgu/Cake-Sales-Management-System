@@ -7,7 +7,7 @@ import java.sql.Date;
 
 public class HoaDonBUS {
     static ArrayList<HoaDonDTO> dshd;
-    public HoaDonBUS() {
+    HoaDonBUS() {
         if (dshd == null) {
             dshd = new ArrayList<>();
         }

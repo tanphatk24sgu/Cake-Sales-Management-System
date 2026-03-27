@@ -6,6 +6,7 @@ import DAO.ChiTietHoaDonDAO;
 
 public class ChiTietHoaDonBUS {
     static ArrayList<ChiTietHoaDonDTO> dscthd;
+
     ChiTietHoaDonBUS() {
         if (dscthd == null) {
             dscthd = new ArrayList<>();
@@ -17,15 +18,33 @@ public class ChiTietHoaDonBUS {
         dscthd = data.docDSCTHD();
     }
 
+    // ===== THÊM HÀM NÀY =====
+    public int tinhDiemThuong(double thanhTien) {
+        if (thanhTien <= 0)
+            return 0;
+        return (int) (thanhTien / 100000);
+    }
+
     public void them(ChiTietHoaDonDTO cthd) {
-        // TODO Kiểm tra dữ liệu hợp lệ
 
-        // TODO Kiểm tra mã duy nhất
+        if (!isMaTonTai(cthd.getMaHD()))
+            return;
 
-        if(!isMaTonTai(cthd.getMaHD())) return;
+        // ===== THÊM LOGIC Ở ĐÂY =====
 
+        // 1. Tính thành tiền
+        double thanhTien = cthd.getSoLuong() * cthd.getDonGia();
+        cthd.setThanhTien(thanhTien);
+
+        // 2. Tính điểm thưởng
+        int diem = tinhDiemThuong(thanhTien);
+        cthd.setDiem(diem);
+
+        // 3. Lưu DB
         ChiTietHoaDonDAO data = new ChiTietHoaDonDAO();
         data.them(cthd);
+
+        // 4. Lưu RAM
         dscthd.add(cthd);
     }
 
@@ -33,8 +52,8 @@ public class ChiTietHoaDonBUS {
         ChiTietHoaDonDAO data = new ChiTietHoaDonDAO();
         data.xoa(maHD, maBanh);
 
-        for(int i = 0;i < dscthd.size();i++) {
-            if(dscthd.get(i).getMaHD() == maHD && dscthd.get(i).getMaBanh() == maBanh) {
+        for (int i = 0; i < dscthd.size(); i++) {
+            if (dscthd.get(i).getMaHD() == maHD && dscthd.get(i).getMaBanh() == maBanh) {
                 dscthd.remove(i);
                 break;
             }
@@ -45,8 +64,8 @@ public class ChiTietHoaDonBUS {
         ChiTietHoaDonDAO data = new ChiTietHoaDonDAO();
         data.sua(cthd);
 
-        for(int i = 0;i < dscthd.size();i++) {
-            if(dscthd.get(i).getMaHD() == cthd.getMaHD() && dscthd.get(i).getMaBanh() == cthd.getMaBanh()) {
+        for (int i = 0; i < dscthd.size(); i++) {
+            if (dscthd.get(i).getMaHD() == cthd.getMaHD() && dscthd.get(i).getMaBanh() == cthd.getMaBanh()) {
                 dscthd.set(i, cthd);
                 break;
             }
@@ -54,8 +73,8 @@ public class ChiTietHoaDonBUS {
     }
 
     public ChiTietHoaDonDTO timKiem(int maHD, int maBanh) {
-        for(ChiTietHoaDonDTO cthd : dscthd) {
-            if(cthd.getMaHD() == maHD && cthd.getMaBanh() == maBanh) {
+        for (ChiTietHoaDonDTO cthd : dscthd) {
+            if (cthd.getMaHD() == maHD && cthd.getMaBanh() == maBanh) {
                 return cthd;
             }
         }
@@ -63,8 +82,8 @@ public class ChiTietHoaDonBUS {
     }
 
     public boolean isMaTonTai(int maHD) {
-        for(ChiTietHoaDonDTO cthd : dscthd) {
-            if(cthd.getMaHD() == maHD) {
+        for (ChiTietHoaDonDTO cthd : dscthd) {
+            if (cthd.getMaHD() == maHD) {
                 return true;
             }
         }
@@ -72,7 +91,8 @@ public class ChiTietHoaDonBUS {
     }
 
     public int thongKeSoLuongBan(int maBanh) {
-        if(maBanh <= 0) return 0;
+        if (maBanh <= 0)
+            return 0;
         ChiTietHoaDonDAO data = new ChiTietHoaDonDAO();
         return data.thongKeSoLuongBan(maBanh);
     }

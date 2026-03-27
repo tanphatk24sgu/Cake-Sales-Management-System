@@ -10,12 +10,11 @@ public class ConnectDatabase {
     private static Connection connection;
 
     private static final String SERVER_NAME = "localhost";
-    private static final String DATABASE_NAME = "CAKE_MANAGEMENT";
-    private static final String USER_NAME = "root";     // thường MySQL dùng root
-    private static final String PASSWORD = "";         // XAMPP mặc định rỗng
+    private static final String DATABASE_NAME = "cake_management";
+    private static final String USER_NAME = "root"; // thường MySQL dùng root
+    private static final String PASSWORD = ""; // XAMPP mặc định rỗng
 
-    private static final String URL =
-            "jdbc:mysql://" + SERVER_NAME + ":3306/"
+    private static final String URL = "jdbc:mysql://" + SERVER_NAME + ":3306/"
             + DATABASE_NAME;
 
     private ConnectDatabase() {

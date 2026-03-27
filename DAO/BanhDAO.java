@@ -16,17 +16,16 @@ public class BanhDAO {
         conn = ConnectDatabase.getConnection();
     }
 
-    
     private int convertCodeToInt(String code) {
         try {
-            if (code == null) return 0;
+            if (code == null)
+                return 0;
             return Integer.parseInt(code.replaceAll("[^0-9]", ""));
         } catch (Exception e) {
             return 0;
         }
     }
 
-    
     public ArrayList<BanhDTO> getAll() {
 
         ArrayList<BanhDTO> list = new ArrayList<>();
@@ -45,10 +44,9 @@ public class BanhDAO {
                 b.setTenBanh(rs.getString("TenBanh"));
                 b.setSoLuong(rs.getInt("SoLuong"));
 
-                
-                b.setMaDVT(convertCodeToInt(rs.getString("MaDVT")));
-                b.setMaLoai(convertCodeToInt(rs.getString("MaLoai")));
-                b.setMaHang(convertCodeToInt(rs.getString("MaHang")));
+                b.setMaDVT(rs.getInt("MaDVT"));
+                b.setMaLoai(rs.getInt("MaLoai"));
+                b.setMaHang(rs.getInt("MaHang"));
 
                 list.add(b);
             }
@@ -63,7 +61,6 @@ public class BanhDAO {
         return list;
     }
 
-   
     public boolean insert(BanhDTO b) {
 
         try {
@@ -75,7 +72,6 @@ public class BanhDAO {
             ps.setString(2, b.getTenBanh());
             ps.setInt(3, b.getSoLuong());
 
-            
             ps.setString(4, "DVT" + b.getMaDVT());
             ps.setString(5, "L" + b.getMaLoai());
             ps.setString(6, "H" + b.getMaHang());
@@ -89,7 +85,6 @@ public class BanhDAO {
         return false;
     }
 
-   
     public boolean update(BanhDTO b) {
 
         try {
@@ -115,7 +110,6 @@ public class BanhDAO {
         return false;
     }
 
-    
     public boolean delete(int maBanh) {
 
         try {
@@ -134,7 +128,6 @@ public class BanhDAO {
         return false;
     }
 
-    
     public BanhDTO findById(int maBanh) {
 
         try {
