@@ -1,5 +1,3 @@
-package GUI;
-
 import java.awt.*;
 import javax.swing.*;
 
@@ -13,13 +11,12 @@ public class ContentPanel extends JPanel {
     public static final String KHUYEN_MAI = "promotion";
     public static final String QUAN_LI_BANH = "cake";
     public static final String NHAN_SU = "staff";
+    public static final String HOA_DON = "invoice";
     public static final String THONG_KE = "stats";
-    public static final String CAI_DAT = "settings";
-
-    // ===== THÊM MỚI =====
     public static final String TICH_DIEM = "tich_diem";
     public static final String CONG_THUC = "cong_thuc";
     public static final String NHA_CUNG_CAP = "ncc";
+    public static final String CAI_DAT = "settings";
 
     public ContentPanel() {
         cardLayout = new CardLayout();
@@ -31,10 +28,12 @@ public class ContentPanel extends JPanel {
         add(new QuanLiBanHangPanel(), BAN_HANG);
         add(new QuanLiKhuyenMaiPanel(), KHUYEN_MAI);
         add(new QuanLiBanhPanel(), QUAN_LI_BANH);
-        add(createPlaceholderPanel("👥 QUẢN LÍ NHÂN SỰ", "Chức năng đang phát triển..."), NHAN_SU);
+        add(new QuanLiNhanSuPanel(), NHAN_SU);
         add(new QuanLiHoaDonPanel(), HOA_DON);
         add(new ThongKePanel(), THONG_KE);
-        // add(createPlaceholderPanel("📊 THỐNG KÊ", "Chức năng đang phát triển..."), THONG_KE);
+        add(new TichDiemPanel(), TICH_DIEM);
+        add(new CongThucPanel(), CONG_THUC);
+        add(new NhaCungCapPanel(), NHA_CUNG_CAP);
         add(createPlaceholderPanel("⚙️ CÀI ĐẶT", "Chức năng đang phát triển..."), CAI_DAT);
 
         // Hiển thị trang chủ mặc định
