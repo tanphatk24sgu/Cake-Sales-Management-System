@@ -2,6 +2,10 @@
 
 import javax.swing.*;
 import javax.swing.table.*;
+
+import BUS.NhanVienBUS;
+import DTO.NhanVienDTO;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.RoundRectangle2D;
@@ -35,6 +39,7 @@ public class QuanLiNhanSuPanel extends JPanel {
         add(createTablePanel(), BorderLayout.CENTER);
         add(createToolbar(), BorderLayout.SOUTH);
 
+        loadDataFromDB();
         // Table bắt đầu trống
     }
 
@@ -434,6 +439,28 @@ public class QuanLiNhanSuPanel extends JPanel {
     private void refreshTable() {
         tableModel.setRowCount(0);
         JOptionPane.showMessageDialog(this, "Đã làm mới dữ liệu!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+
+        loadDataFromDB();
     }
 
+    private void loadDataFromDB() {
+        NhanVienBUS bus = new NhanVienBUS();
+        bus.docDSNV();
+
+        tableModel.setRowCount(0);
+
+        for(NhanVienDTO nv : bus.getDSNV()) {
+            Object[] row = {
+                nv.getMaNV(),
+                nv.getTen(),
+                nv.getHo(),
+                nv.getChucVu(),
+                nv.getGioiTinh(),
+                nv.getNgaySinh(),
+                nv.getDiaChi(),
+                nv.getSdt()
+            };
+            tableModel.addRow(row);
+        }
+    }
 }

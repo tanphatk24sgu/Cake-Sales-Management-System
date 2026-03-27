@@ -17,6 +17,10 @@ public class HoaDonBUS {
         HoaDonDAO data = new HoaDonDAO();
         dshd = data.docDSHD();
     }
+    
+    public ArrayList<HoaDonDTO> getDSHD() {
+        return dshd;
+    }
 
     public void them(HoaDonDTO hd) {
         // TODO Kiểm tra dữ liệu hợp lệ

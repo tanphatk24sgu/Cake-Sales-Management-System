@@ -4,6 +4,9 @@ import javax.swing.border.Border;
 import javax.swing.table.*;
 import javax.swing.text.SimpleAttributeSet;
 
+import BUS.HoaDonBUS;
+import DTO.HoaDonDTO;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.util.Date;
@@ -38,7 +41,8 @@ public class QuanLiHoaDonPanel extends JPanel {
 
         add(createHeader(), BorderLayout.NORTH);
         add(createMainContent(), BorderLayout.CENTER);
-        // add(createToolBar(), BorderLayout.SOUTH);
+        
+        loadDataFromDB();
     }
 
     private JPanel createHeader() {
@@ -341,14 +345,62 @@ public class QuanLiHoaDonPanel extends JPanel {
         
         btnSave.addActionListener(e -> {
             // TODO: Validate và lưu dữ liệu
+            try {
+                for (int i = 1; i < fields.length;i++) {
+                    if(fields[i].getText().trim().isEmpty()) {
+                        JOptionPane.showMessageDialog(dialog, "Vui lòng nhập đầy đủ thông tin!");
+                        return;
+                    }
+                }
+
+                int maNV = Integer.parseInt(fields[2].getText().trim());
+                int maKH = Integer.parseInt(fields[3].getText().trim());
+                double thanhTien = Double.parseDouble(fields[4].getText().trim());
+
+                String ngayLapStr = fields[1].getText().trim();
+                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
+                java.util.Date ngayLap = sdf.parse(ngayLapStr);
+
+                Object[] rowData;
+
+                if(data == null) {
+                    rowData = new Object[]{
+                        "",
+                        sdf.format(ngayLap),
+                        maNV,
+                        maKH,
+                        thanhTien
+                    };
+
+                    invoiceModel.addRow(rowData);
+                    JOptionPane.showMessageDialog(dialog, "Thêm hóa đơn thành công!");
+                } else {
+                    int selectedRow = tblInvoice.getSelectedRow();
+
+                    invoiceModel.setValueAt(sdf.format(ngayLap), selectedRow, 1);
+                    invoiceModel.setValueAt(maNV, selectedRow, 2);
+                    invoiceModel.setValueAt(maKH, selectedRow, 3);
+                    invoiceModel.setValueAt(thanhTien, selectedRow, 4);
+
+                    JOptionPane.showMessageDialog(dialog, "Cập nhật thành công!");
+                }
+
+                dialog.dispose();
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(dialog, "Mã NV, KH, và thành tiền phải là số!");
+            } catch (java.text.ParseException ex) {
+                JOptionPane.showMessageDialog(dialog, "Ngày phải đúng format yyyy-MM-dd HH:mm:ss");
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(dialog, "Lỗi: " + ex.getMessage());
+            }
             if (data == null) {
                 // Thêm mới
-                Object[] newRow = new Object[invoiceModel.getColumnCount()];
-                for (int i = 0; i < newRow.length; i++) {
+                Object[] newRow = new Object[fields.length];
+                for (int i = 0; i < fields.length; i++) {
                     newRow[i] = fields[i].getText();
                 }
                 invoiceModel.addRow(newRow);
-                JOptionPane.showMessageDialog(dialog, "Thêm bánh thành công!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(dialog, "Thêm hóa đơn thành công!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
             } else {
                 // Cập nhật
                 int selectedRow = tblInvoice.getSelectedRow();
@@ -380,9 +432,9 @@ public class QuanLiHoaDonPanel extends JPanel {
             return;
         }
         
-        String tenBanh = invoiceModel.getValueAt(selectedRow, 1).toString();
+        String maHD = invoiceModel.getValueAt(selectedRow, 1).toString();
         int confirm = JOptionPane.showConfirmDialog(this,
-            "Bạn có chắc muốn xóa \"" + tenBanh + "\"?",
+            "Bạn có chắc muốn xóa \"" + maHD + "\"?",
             "Xác nhận xóa",
             JOptionPane.YES_NO_OPTION,
             JOptionPane.QUESTION_MESSAGE);
@@ -393,9 +445,27 @@ public class QuanLiHoaDonPanel extends JPanel {
         }
     }
     
+    private void loadDataFromDB() {
+        HoaDonBUS bus = new HoaDonBUS();
+        bus.docDSHD();
+
+        invoiceModel.setRowCount(0);
+
+        for(HoaDonDTO hd : bus.getDSHD()) {
+            Object[] row = {
+                hd.getMaHD(),
+                hd.getNgayLapHD(),
+                hd.getMaNV(),
+                hd.getMaKH(),
+                hd.getThanhTien()
+            };
+            invoiceModel.addRow(row);
+        }
+    }
+
     private void refreshTable() {
         invoiceModel.setRowCount(0);
-        // loadSampleData();
+        loadDataFromDB();
         JOptionPane.showMessageDialog(this, "Đã làm mới dữ liệu!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
     }
     

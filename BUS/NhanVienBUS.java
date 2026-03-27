@@ -14,6 +14,10 @@ public class NhanVienBUS {
         NhanVienDAO data = new NhanVienDAO();
         dsnv=data.docDSNV();
     }
+
+    public ArrayList<NhanVienDTO> getDSNV() {
+        return dsnv;
+    }
     public boolean isMaTonTai(int maNV) {
         for (NhanVienDTO nv : dsnv) {
             if (nv.getMaNV() == maNV) {
