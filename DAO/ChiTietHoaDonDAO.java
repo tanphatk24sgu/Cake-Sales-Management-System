@@ -16,19 +16,19 @@ public class ChiTietHoaDonDAO {
         try {
             conn = ConnectDatabase.getInstance().getConnection();
 
-            String qry = "SELECT * FROM chitiethoa";
+            String qry = "SELECT * FROM chitiethoadon";
 
             st = conn.createStatement();
             rs = st.executeQuery(qry);
 
             while(rs.next()) {
                 ChiTietHoaDonDTO cthd = new ChiTietHoaDonDTO();
-                cthd.setMaHD(Integer.parseInt("MaHD"));
-                cthd.setMaBanh(Integer.parseInt("MaBanh"));
-                cthd.setSoLuong(Integer.parseInt("SoLuong"));
-                cthd.setDonGia(Double.parseDouble("DonGia"));
-                cthd.setThanhTien(Double.parseDouble("ThanhTien"));
-                cthd.setDiem(Integer.parseInt("Diem"));
+                cthd.setMaHD(rs.getInt("MaHD"));
+                cthd.setMaBanh(rs.getInt("MaBanh"));
+                cthd.setSoLuong(rs.getInt("SoLuong"));
+                cthd.setDonGia(rs.getDouble("DonGia"));
+                cthd.setThanhTien(rs.getDouble("ThanhTien"));
+                cthd.setDiem(rs.getInt("Diem"));
 
                 dscthd.add(cthd);
             }

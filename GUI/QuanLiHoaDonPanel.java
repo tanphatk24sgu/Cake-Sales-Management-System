@@ -4,7 +4,10 @@ import javax.swing.border.Border;
 import javax.swing.table.*;
 import javax.swing.text.SimpleAttributeSet;
 
+import BUS.ChiTietHoaDonBUS;
 import BUS.HoaDonBUS;
+import DAO.ChiTietHoaDonDAO;
+import DTO.ChiTietHoaDonDTO;
 import DTO.HoaDonDTO;
 
 import java.awt.*;
@@ -42,7 +45,8 @@ public class QuanLiHoaDonPanel extends JPanel {
         add(createHeader(), BorderLayout.NORTH);
         add(createMainContent(), BorderLayout.CENTER);
         
-        loadDataFromDB();
+        loadInvoiceFromDB();
+        loadDetailFromDB();
     }
 
     private JPanel createHeader() {
@@ -365,7 +369,7 @@ public class QuanLiHoaDonPanel extends JPanel {
 
                 if(data == null) {
                     rowData = new Object[]{
-                        "",
+                        invoiceModel.getRowCount() + 1,
                         sdf.format(ngayLap),
                         maNV,
                         maKH,
@@ -386,40 +390,25 @@ public class QuanLiHoaDonPanel extends JPanel {
                 }
 
                 dialog.dispose();
+
+                // JDialog cthdDialog = createCTHDDialog(maHDMoi)
             } catch (NumberFormatException ex) {
                 JOptionPane.showMessageDialog(dialog, "Mã NV, KH, và thành tiền phải là số!");
             } catch (java.text.ParseException ex) {
-                JOptionPane.showMessageDialog(dialog, "Ngày phải đúng format yyyy-MM-dd HH:mm:ss");
+                JOptionPane.showMessageDialog(dialog, "Ngày phải đúng format yyyy-MM-dd");
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(dialog, "Lỗi: " + ex.getMessage());
             }
-            if (data == null) {
-                // Thêm mới
-                Object[] newRow = new Object[fields.length];
-                for (int i = 0; i < fields.length; i++) {
-                    newRow[i] = fields[i].getText();
-                }
-                invoiceModel.addRow(newRow);
-                JOptionPane.showMessageDialog(dialog, "Thêm hóa đơn thành công!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
-            } else {
-                // Cập nhật
-                int selectedRow = tblInvoice.getSelectedRow();
-                for (int i = 0; i < fields.length; i++) {
-                    invoiceModel.setValueAt(fields[i].getText(), selectedRow, i);
-                }
-                JOptionPane.showMessageDialog(dialog, "Cập nhật thành công!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
-            }
-            dialog.dispose();
         });
-    btnCancel.addActionListener(e -> dialog.dispose());
-        
-        buttonPanel.add(btnSave);
-        buttonPanel.add(btnCancel);
-        
-        dialog.add(formPanel, BorderLayout.CENTER);
-        dialog.add(buttonPanel, BorderLayout.SOUTH);
-        
-        return dialog;
+        btnCancel.addActionListener(e -> dialog.dispose());
+            
+            buttonPanel.add(btnSave);
+            buttonPanel.add(btnCancel);
+            
+            dialog.add(formPanel, BorderLayout.CENTER);
+            dialog.add(buttonPanel, BorderLayout.SOUTH);
+            
+            return dialog;
     }
 
     private void deleteSelected() {
@@ -445,7 +434,7 @@ public class QuanLiHoaDonPanel extends JPanel {
         }
     }
     
-    private void loadDataFromDB() {
+    private void loadInvoiceFromDB() {
         HoaDonBUS bus = new HoaDonBUS();
         bus.docDSHD();
 
@@ -463,9 +452,29 @@ public class QuanLiHoaDonPanel extends JPanel {
         }
     }
 
+    private void loadDetailFromDB() {
+        ChiTietHoaDonBUS bus = new ChiTietHoaDonBUS();
+        bus.docDSCTHD();
+
+        detailModel.setRowCount(0);
+
+        for(ChiTietHoaDonDTO ct : bus.getDSCTHD()) {
+            Object[] row = {
+                ct.getMaHD(),
+                ct.getMaBanh(),
+                ct.getSoLuong(),
+                ct.getDonGia(),
+                ct.getThanhTien(),
+                ct.getDiem()
+            };
+            detailModel.addRow(row);
+        }
+    }
+
     private void refreshTable() {
         invoiceModel.setRowCount(0);
-        loadDataFromDB();
+        loadInvoiceFromDB();
+        loadDetailFromDB();
         JOptionPane.showMessageDialog(this, "Đã làm mới dữ liệu!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
     }
     

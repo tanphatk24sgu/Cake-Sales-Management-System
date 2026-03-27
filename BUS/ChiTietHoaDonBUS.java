@@ -7,10 +7,14 @@ import DAO.ChiTietHoaDonDAO;
 public class ChiTietHoaDonBUS {
     static ArrayList<ChiTietHoaDonDTO> dscthd;
 
-    ChiTietHoaDonBUS() {
+    public ChiTietHoaDonBUS() {
         if (dscthd == null) {
             dscthd = new ArrayList<>();
         }
+    }
+
+    public ArrayList<ChiTietHoaDonDTO> getDSCTHD() {
+        return dscthd;
     }
 
     public void docDSCTHD() {
