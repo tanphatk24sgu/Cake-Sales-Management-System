@@ -45,7 +45,8 @@ public class HoaDonDAO {
         return dshd;
     }
 
-    public void them(HoaDonDTO hd) {
+    public int them(HoaDonDTO hd) {
+        int maHDMoi = -1;
         try {
             java.sql.Date sqlDate = new Date(hd.getNgayLapHD().getTime());
 
@@ -57,10 +58,16 @@ public class HoaDonDAO {
             qry += hd.getThanhTien() + "')";
 
             st = conn.createStatement();
-            st.executeUpdate(qry);
+            st.executeUpdate(qry, Statement.RETURN_GENERATED_KEYS);
+
+            rs = st.getGeneratedKeys();
+            if(rs.next()) {
+                maHDMoi = rs.getInt(1);
+            }
         } catch(SQLException e) {
             JOptionPane.showMessageDialog(null, "SQL Error: " + e.getMessage());
         }
+        return maHDMoi;
     }
 
     public void xoa(int maHD) {

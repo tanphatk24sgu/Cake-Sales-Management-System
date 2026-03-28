@@ -348,6 +348,7 @@ public class QuanLiHoaDonPanel extends JPanel {
         JButton btnCancel = createStyledButton("Hủy", new Color(107, 114, 128), 100);
         
         btnSave.addActionListener(e -> {
+            int maHDMoi = -1;
             // TODO: Validate và lưu dữ liệu
             try {
                 for (int i = 1; i < fields.length;i++) {
@@ -391,7 +392,7 @@ public class QuanLiHoaDonPanel extends JPanel {
 
                 dialog.dispose();
 
-                // JDialog cthdDialog = createCTHDDialog(maHDMoi)
+                JDialog cthdDialog = createCTHDDialog(maHDMoi);
             } catch (NumberFormatException ex) {
                 JOptionPane.showMessageDialog(dialog, "Mã NV, KH, và thành tiền phải là số!");
             } catch (java.text.ParseException ex) {
@@ -409,6 +410,11 @@ public class QuanLiHoaDonPanel extends JPanel {
             dialog.add(buttonPanel, BorderLayout.SOUTH);
             
             return dialog;
+    }
+
+    private JDialog createCTHDDialog(int maHD) {
+        JDialog dialog = new JDialog();
+        return dialog;
     }
 
     private void deleteSelected() {
