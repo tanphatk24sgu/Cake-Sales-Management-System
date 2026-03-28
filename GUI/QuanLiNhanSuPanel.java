@@ -13,6 +13,18 @@ import java.awt.geom.RoundRectangle2D;
 public class QuanLiNhanSuPanel extends JPanel {
 
     // Khai báo components
+    private void updateTotalLabel() {
+
+        if (lblTotal != null) {
+            lblTotal.setText(
+                "Tổng: " 
+                + tableModel.getRowCount() 
+                + " nhân viên"
+            );
+        }
+
+    }
+    private JLabel lblTotal;
     private JTable table;
     private DefaultTableModel tableModel;
     private JTextField txtSearch;
@@ -105,6 +117,51 @@ public class QuanLiNhanSuPanel extends JPanel {
         });
 
         JButton btnSearch = createStyledButton("Tìm", primaryColor, 80);
+        btnSearch.addActionListener(e -> {
+            String searchTerm = txtSearch.getText().trim();
+            if (searchTerm.isEmpty() || searchTerm.equals("Nhập tên nhân viên...")) {
+                refreshTable();
+                return;
+            }
+
+            NhanVienBUS bus = new NhanVienBUS();
+            bus.docDSNV();
+            tableModel.setRowCount(0);
+            try{
+                int maNV = Integer.parseInt(searchTerm);
+                NhanVienDTO nv = bus.timKiemTheoMa(maNV);
+                if (nv != null) {
+                    Object[] row = {
+                        nv.getMaNV(),
+                        nv.getTen(),
+                        nv.getHo(),
+                        nv.getChucVu(),
+                        nv.getNgaySinh(),
+                        nv.getLuongCoBan()
+                    };
+                    tableModel.addRow(row);
+                    return;
+                }
+            } catch (NumberFormatException ex) {
+                for (NhanVienDTO nv : bus.getDSNV()) {
+                    if (nv.getTen().equalsIgnoreCase(searchTerm)) {
+                        Object[] row = {
+                            nv.getMaNV(),
+                            nv.getTen(),
+                            nv.getHo(),
+                            nv.getChucVu(),
+                            nv.getNgaySinh(),
+                            nv.getLuongCoBan()
+                        };
+                        tableModel.addRow(row);
+                    }
+                }
+                // Không phải số, tiếp tục tìm theo tên
+
+            }
+        });
+        txtSearch.addActionListener(e -> btnSearch.doClick());
+
 
         searchPanel.add(lblSearch);
         searchPanel.add(txtSearch);
@@ -125,7 +182,7 @@ public class QuanLiNhanSuPanel extends JPanel {
                 BorderFactory.createEmptyBorder(0, 0, 0, 0)));
 
         // Định nghĩa cột
-        String[] columns = { "Mã NV", "Tên nhân viên", "Chức vụ", "Số điện thoại", "Email", "Lương" };
+        String[] columns = { "Mã NV", "Tên", "Họ", "Chức vụ", "Ngày Sinh", "Lương cơ bản" };
 
         // Tạo model (không cho edit trực tiếp)
         tableModel = new DefaultTableModel(columns, 0) {
@@ -240,7 +297,8 @@ public class QuanLiNhanSuPanel extends JPanel {
         JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
         rightPanel.setBackground(bgColor);
 
-        JLabel lblTotal = new JLabel("Tổng: " + tableModel.getRowCount() + " nhân viên");
+        JLabel lblTotal = new JLabel();
+        updateTotalLabel();
         lblTotal.setFont(normalFont);
         lblTotal.setForeground(new Color(107, 114, 128));
 
@@ -388,6 +446,7 @@ public class QuanLiNhanSuPanel extends JPanel {
                     newRow[i] = fields[i].getText();
                 }
                 tableModel.addRow(newRow);
+                updateTotalLabel();
                 JOptionPane.showMessageDialog(dialog, "Thêm nhân viên thành công!", "Thông báo",
                         JOptionPane.INFORMATION_MESSAGE);
             } else {
@@ -432,6 +491,7 @@ public class QuanLiNhanSuPanel extends JPanel {
 
         if (confirm == JOptionPane.YES_OPTION) {
             tableModel.removeRow(selectedRow);
+            updateTotalLabel();
             JOptionPane.showMessageDialog(this, "Xóa thành công!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
         }
     }
@@ -455,12 +515,11 @@ public class QuanLiNhanSuPanel extends JPanel {
                 nv.getTen(),
                 nv.getHo(),
                 nv.getChucVu(),
-                nv.getGioiTinh(),
                 nv.getNgaySinh(),
-                nv.getDiaChi(),
-                nv.getSdt()
+                nv.getLuongCoBan()
             };
             tableModel.addRow(row);
         }
     }
+    updateTotalLabel();
 }
