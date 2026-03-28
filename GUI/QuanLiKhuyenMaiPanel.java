@@ -749,24 +749,6 @@ public class QuanLiKhuyenMaiPanel extends JPanel {
 
         KhuyenMaiVM() {
         }
-
-        KhuyenMaiVM(int maKM, String tenCT, String loaiKhuyenMai, int phanTramGiam, double dieuKienToiThieu,
-                int soLuongMua, int soLuongTang, int maBanhMua, String tenBanhMua,
-                int maBanhTang, String tenBanhTang, Date ngayBatDau, Date ngayKetThuc) {
-            this.maKM = maKM;
-            this.tenCT = tenCT;
-            this.loaiKhuyenMai = loaiKhuyenMai;
-            this.phanTramGiam = phanTramGiam;
-            this.dieuKienToiThieu = dieuKienToiThieu;
-            this.soLuongMua = soLuongMua;
-            this.soLuongTang = soLuongTang;
-            this.maBanhMua = maBanhMua;
-            this.tenBanhMua = tenBanhMua;
-            this.maBanhTang = maBanhTang;
-            this.tenBanhTang = tenBanhTang;
-            this.ngayBatDau = ngayBatDau;
-            this.ngayKetThuc = ngayKetThuc;
-        }
     }
 
     private static class ItemBanh {

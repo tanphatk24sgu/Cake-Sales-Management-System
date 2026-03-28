@@ -14,7 +14,7 @@ public class ContentPanel extends JPanel {
     public static final String HOA_DON = "invoice";
     public static final String THONG_KE = "stats";
     public static final String TICH_DIEM = "tich_diem";
-    public static final String CONG_THUC = "cong_thuc";
+    public static final String PHIEU_NHAP = "phieu_nhap";
     public static final String NHA_CUNG_CAP = "ncc";
     public static final String CAI_DAT = "settings";
 
@@ -32,7 +32,7 @@ public class ContentPanel extends JPanel {
         add(new QuanLiHoaDonPanel(), HOA_DON);
         add(new ThongKePanel(), THONG_KE);
         add(new TichDiemPanel(), TICH_DIEM);
-        add(new CongThucPanel(), CONG_THUC);
+        add(new QuanLiPhieuNhapPanel(), PHIEU_NHAP);
         add(new NhaCungCapPanel(), NHA_CUNG_CAP);
         add(createPlaceholderPanel("⚙️ CÀI ĐẶT", "Chức năng đang phát triển..."), CAI_DAT);
 

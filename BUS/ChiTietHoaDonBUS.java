@@ -30,8 +30,7 @@ public class ChiTietHoaDonBUS {
     }
 
     public void them(ChiTietHoaDonDTO cthd) {
-
-        if (!isMaTonTai(cthd.getMaHD()))
+        if (cthd.getMaHD() <= 0 || cthd.getMaBanh() <= 0)
             return;
 
         // ===== THÊM LOGIC Ở ĐÂY =====

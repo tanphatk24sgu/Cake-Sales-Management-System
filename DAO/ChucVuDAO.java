@@ -14,7 +14,7 @@ public class ChucVuDAO {
     public ArrayList<ChucVuDTO> docDSCV() {
         ArrayList<ChucVuDTO> dscv = new ArrayList<>();
         try {
-            conn = ConnectDatabase.getInstance().getConnection();
+            conn = ConnectDatabase.getConnection();
             String qry = "SELECT * FROM chucvu";
             st = conn.createStatement();
             rs = st.executeQuery(qry);
@@ -45,7 +45,7 @@ public class ChucVuDAO {
 
     public void them(ChucVuDTO cv) {
         try {
-            conn = ConnectDatabase.getInstance().getConnection();
+            conn = ConnectDatabase.getConnection();
             String qry = "INSERT INTO chucvu(TenChucVu) VALUES(?)";
             PreparedStatement pst = conn.prepareStatement(qry);
             pst.setString(1, cv.getTenChucVu());
@@ -62,7 +62,7 @@ public class ChucVuDAO {
 
     public void sua(ChucVuDTO cv) {
         try {
-            conn = ConnectDatabase.getInstance().getConnection();
+            conn = ConnectDatabase.getConnection();
             String qry = "UPDATE chucvu SET TenChucVu=? WHERE MaChucVu=?";
             PreparedStatement pst = conn.prepareStatement(qry);
             pst.setString(1, cv.getTenChucVu());
@@ -80,7 +80,7 @@ public class ChucVuDAO {
 
     public void xoa(int maChucVu) {
         try {
-            conn = ConnectDatabase.getInstance().getConnection();
+            conn = ConnectDatabase.getConnection();
             String qry = "DELETE FROM chucvu WHERE MaChucVu=?";
             PreparedStatement pst = conn.prepareStatement(qry);
             pst.setInt(1, maChucVu);

@@ -1,8 +1,6 @@
 package DAO;
 
 import java.sql.*;
-import java.util.ArrayList;
-import DTO.KhuyenMaiDTO;
 import Database.ConnectDatabase;
 
 public class KhuyenMaiDAO {

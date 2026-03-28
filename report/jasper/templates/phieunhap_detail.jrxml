@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+              name="phieunhap_detail"
+              pageWidth="595" pageHeight="842" columnWidth="555"
+              leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20"
+              uuid="aa6e2133-c0be-45f1-8a52-d122fbcfca11">
+
+    <parameter name="MaPhieuNhap" class="java.lang.Integer"/>
+
+    <queryString>
+        <![CDATA[
+SELECT p.MaPhieuNhap,
+       p.Ngay,
+       CONCAT(IFNULL(nv.Ho,''),' ',IFNULL(nv.Ten,'')) AS TenNhanVien,
+       ncc.TenNCC,
+       ncc.MaSoThue,
+       c.MaBanh,
+       b.TenBanh,
+       c.MaNVL,
+       nl.Ten AS TenNguyenLieu,
+       c.SoLuong,
+       c.DonGia,
+       c.ThanhTien,
+       c.TinhTrang
+FROM phieunhaphang p
+JOIN ct_phieunhaphang c ON p.MaPhieuNhap = c.MaPhieuNhap
+LEFT JOIN nhanvien nv ON p.MaNV = nv.MaNV
+LEFT JOIN nhacungcap ncc ON p.MaNCC = ncc.MaNCC
+LEFT JOIN banh b ON c.MaBanh = b.MaBanh
+LEFT JOIN nguyenlieu nl ON c.MaNVL = nl.MaNL
+WHERE p.MaPhieuNhap = $P{MaPhieuNhap}
+ORDER BY c.MaBanh, c.MaNVL
+        ]]>
+    </queryString>
+
+    <field name="MaPhieuNhap" class="java.lang.Integer"/>
+    <field name="Ngay" class="java.sql.Timestamp"/>
+    <field name="TenNhanVien" class="java.lang.String"/>
+    <field name="TenNCC" class="java.lang.String"/>
+    <field name="MaSoThue" class="java.lang.String"/>
+    <field name="MaBanh" class="java.lang.Integer"/>
+    <field name="TenBanh" class="java.lang.String"/>
+    <field name="MaNVL" class="java.lang.Integer"/>
+    <field name="TenNguyenLieu" class="java.lang.String"/>
+    <field name="SoLuong" class="java.lang.Integer"/>
+    <field name="DonGia" class="java.lang.Double"/>
+    <field name="ThanhTien" class="java.lang.Double"/>
+    <field name="TinhTrang" class="java.lang.String"/>
+
+    <title>
+        <band height="60">
+            <staticText>
+                <reportElement x="0" y="0" width="555" height="30"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font size="18" isBold="true"/>
+                </textElement>
+                <text><![CDATA[PHIEU NHAP HANG]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="0" y="35" width="555" height="20"/>
+                <textElement textAlignment="Center"/>
+                <textFieldExpression><![CDATA["Ma phieu nhap: " + $F{MaPhieuNhap} + " | Ngay: " + $F{Ngay}]]></textFieldExpression>
+            </textField>
+        </band>
+    </title>
+
+    <pageHeader>
+        <band height="25">
+            <textField>
+                <reportElement x="0" y="0" width="280" height="20"/>
+                <textFieldExpression><![CDATA["Nha cung cap: " + $F{TenNCC}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="290" y="0" width="265" height="20"/>
+                <textElement textAlignment="Right"/>
+                <textFieldExpression><![CDATA["Nhan vien lap: " + $F{TenNhanVien}]]></textFieldExpression>
+            </textField>
+        </band>
+    </pageHeader>
+
+    <columnHeader>
+        <band height="22">
+            <staticText><reportElement x="0" y="0" width="35" height="22"/><text><![CDATA[MB]]></text></staticText>
+            <staticText><reportElement x="35" y="0" width="120" height="22"/><text><![CDATA[Ten banh]]></text></staticText>
+            <staticText><reportElement x="155" y="0" width="40" height="22"/><text><![CDATA[NL]]></text></staticText>
+            <staticText><reportElement x="195" y="0" width="110" height="22"/><text><![CDATA[Ten nguyen lieu]]></text></staticText>
+            <staticText><reportElement x="305" y="0" width="50" height="22"/><text><![CDATA[SL]]></text></staticText>
+            <staticText><reportElement x="355" y="0" width="90" height="22"/><text><![CDATA[Don gia]]></text></staticText>
+            <staticText><reportElement x="445" y="0" width="110" height="22"/><text><![CDATA[Thanh tien]]></text></staticText>
+        </band>
+    </columnHeader>
+
+    <detail>
+        <band height="20">
+            <textField><reportElement x="0" y="0" width="35" height="20"/><textFieldExpression><![CDATA[$F{MaBanh}]]></textFieldExpression></textField>
+            <textField><reportElement x="35" y="0" width="120" height="20"/><textFieldExpression><![CDATA[$F{TenBanh}]]></textFieldExpression></textField>
+            <textField><reportElement x="155" y="0" width="40" height="20"/><textFieldExpression><![CDATA[$F{MaNVL}]]></textFieldExpression></textField>
+            <textField><reportElement x="195" y="0" width="110" height="20"/><textFieldExpression><![CDATA[$F{TenNguyenLieu}]]></textFieldExpression></textField>
+            <textField><reportElement x="305" y="0" width="50" height="20"/><textFieldExpression><![CDATA[$F{SoLuong}]]></textFieldExpression></textField>
+            <textField><reportElement x="355" y="0" width="90" height="20"/><textFieldExpression><![CDATA[$F{DonGia}]]></textFieldExpression></textField>
+            <textField><reportElement x="445" y="0" width="110" height="20"/><textFieldExpression><![CDATA[$F{ThanhTien}]]></textFieldExpression></textField>
+        </band>
+    </detail>
+</jasperReport>

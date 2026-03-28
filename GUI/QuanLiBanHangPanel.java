@@ -1,11 +1,18 @@
 
 
 import BUS.ChuongTrinhKhuyenMaiBUS;
+import BUS.HoaDonBUS;
+import DTO.ChiTietHoaDonDTO;
 import DTO.ChuongTrinhKhuyenMaiDTO;
+import DTO.HoaDonDTO;
+import Database.ConnectDatabase;
 import javax.swing.*;
 import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.text.DecimalFormat;
 import java.text.Normalizer;
 import java.util.Calendar;
@@ -49,6 +56,7 @@ public class QuanLiBanHangPanel extends JPanel {
     private ArrayList<PromotionOption> promotionOptions = new ArrayList<>();
     private PromotionOption selectedPromotion = null;
     private boolean isUpdatingCart = false;
+    private int selectedCustomerId = -1;
 
     public QuanLiBanHangPanel() {
         setBackground(bgColor);
@@ -64,8 +72,8 @@ public class QuanLiBanHangPanel extends JPanel {
         // Footer (thanh toán)
         add(createFooter(), BorderLayout.SOUTH);
 
-        // Load dữ liệu mẫu
-        loadSampleProducts();
+        // Load dữ liệu sản phẩm từ DB
+        loadProducts();
         refreshPromotionsFromManager();
         updatePromotionButtonState();
     }
@@ -547,24 +555,31 @@ public class QuanLiBanHangPanel extends JPanel {
         return btn;
     }
 
-    private void loadSampleProducts() {
-        Object[][] data = {
-                { 1, "Bánh kem socola", 150000, 50 },
-                { 2, "Bánh mì bơ tỏi", 25000, 100 },
-                { 3, "Bánh su kem", 35000, 75 },
-                { 4, "Bánh croissant", 45000, 30 },
-                { 5, "Bánh phô mai", 120000, 45 },
-                { 6, "Bánh cupcake", 30000, 80 },
-                { 7, "Bánh tiramisu", 180000, 25 },
-                { 8, "Bánh tart trứng", 40000, 60 },
-                { 9, "Bánh mousse", 160000, 35 },
-                { 10, "Bánh bông lan", 55000, 90 },
-        };
-
-        for (Object[] row : data) {
-            // Format giá tiền
-            row[2] = moneyFormat.format(row[2]);
-            productModel.addRow(row);
+    private void loadProducts() {
+        productModel.setRowCount(0);
+        String sql = "SELECT b.MaBanh, b.TenBanh, b.SoLuong, "
+            + "COALESCE((SELECT cthd.DonGia FROM chitiethoadon cthd "
+            + "          WHERE cthd.MaBanh = b.MaBanh "
+            + "          ORDER BY cthd.MaHD DESC LIMIT 1), "
+            + "         (SELECT ctpn.DonGia FROM ct_phieunhaphang ctpn "
+            + "          WHERE ctpn.MaBanh = b.MaBanh "
+            + "          ORDER BY ctpn.MaPhieuNhap DESC LIMIT 1), 0) AS DonGia "
+            + "FROM banh b ORDER BY b.MaBanh";
+        try (Connection conn = ConnectDatabase.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                int maBanh = rs.getInt("MaBanh");
+                String tenBanh = rs.getString("TenBanh");
+                double donGia = rs.getDouble("DonGia");
+                int tonKho = rs.getInt("SoLuong");
+                productModel.addRow(new Object[] { maBanh, tenBanh, moneyFormat.format(donGia), tonKho });
+            }
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this,
+                    "Không tải được danh sách bánh từ CSDL: " + ex.getMessage(),
+                    "Lỗi",
+                    JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -609,7 +624,6 @@ public class QuanLiBanHangPanel extends JPanel {
         }
 
         // Lấy thông tin sản phẩm
-        String maBanh = productModel.getValueAt(selectedRow, 0).toString();
         String tenBanh = productModel.getValueAt(selectedRow, 1).toString();
         String donGia = productModel.getValueAt(selectedRow, 2).toString();
 
@@ -729,28 +743,44 @@ public class QuanLiBanHangPanel extends JPanel {
             return;
         }
 
-        // Giả lập tìm khách hàng
-        if (phone.equals("0123456789")) {
-            txtCustomerName.setText("Nguyễn Văn A");
-            lblCustomerPoints.setText("150 điểm");
-            customerDiscount = 15000; // Giảm giá theo điểm
-            updateCartTotal();
-        } else {
+        String sql = "SELECT MaKH, Ho, Ten FROM khachhang WHERE SDT = ? LIMIT 1";
+        try (Connection conn = ConnectDatabase.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, phone);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    selectedCustomerId = rs.getInt("MaKH");
+                    txtCustomerName.setText(rs.getString("Ho") + " " + rs.getString("Ten"));
+                    lblCustomerPoints.setText("0 điểm");
+                    customerDiscount = 0;
+                    updateCartTotal();
+                    return;
+                }
+            }
+        } catch (Exception ex) {
             JOptionPane.showMessageDialog(this,
-                    "Không tìm thấy khách hàng!\nBạn có thể tạo khách hàng mới.",
-                    "Thông báo",
-                    JOptionPane.INFORMATION_MESSAGE);
-            txtCustomerName.setText("");
-            lblCustomerPoints.setText("0 điểm");
-            customerDiscount = 0;
-            updateCartTotal();
+                    "Lỗi tìm khách hàng: " + ex.getMessage(),
+                    "Lỗi",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
         }
+
+        selectedCustomerId = -1;
+        JOptionPane.showMessageDialog(this,
+                "Không tìm thấy khách hàng trong CSDL.",
+                "Thông báo",
+                JOptionPane.INFORMATION_MESSAGE);
+        txtCustomerName.setText("");
+        lblCustomerPoints.setText("0 điểm");
+        customerDiscount = 0;
+        updateCartTotal();
     }
 
     private void setGuestCustomer() {
         txtPhoneCustomer.setText("");
         txtCustomerName.setText("Khách lẻ");
         lblCustomerPoints.setText("0 điểm");
+        selectedCustomerId = -1;
         customerDiscount = 0;
         updateCartTotal();
     }
@@ -761,7 +791,7 @@ public class QuanLiBanHangPanel extends JPanel {
             return;
         }
 
-        double finalAmount = totalAmount - discount;
+        double finalAmount = Math.max(0, totalAmount - discount);
 
         int confirm = JOptionPane.showConfirmDialog(this,
                 "Xác nhận thanh toán?\n\nTổng tiền: " + moneyFormat.format(finalAmount),
@@ -769,22 +799,121 @@ public class QuanLiBanHangPanel extends JPanel {
                 JOptionPane.YES_NO_OPTION);
 
         if (confirm == JOptionPane.YES_OPTION) {
-            JOptionPane.showMessageDialog(this,
-                    "✅ Thanh toán thành công!\n\nMã hóa đơn: HD" + System.currentTimeMillis() % 10000,
-                    "Thành công",
-                    JOptionPane.INFORMATION_MESSAGE);
+            try {
+                int maNV = getDefaultEmployeeId();
+                if (maNV <= 0) {
+                    throw new IllegalStateException("Không tìm thấy nhân viên hợp lệ để lập hóa đơn.");
+                }
 
-            // Reset
-            cartModel.setRowCount(0);
-            txtPhoneCustomer.setText("");
-            txtCustomerName.setText("");
-            lblCustomerPoints.setText("0 điểm");
-            customerDiscount = 0;
-            promotionDiscount = 0;
-            selectedPromotion = null;
-            discount = 0;
-            updateCartTotal();
+                ArrayList<ChiTietHoaDonDTO> dsChiTiet = buildInvoiceDetailsFromCart();
+                if (dsChiTiet.isEmpty()) {
+                    throw new IllegalArgumentException("Giỏ hàng chưa có sản phẩm hợp lệ để thanh toán.");
+                }
+
+                HoaDonDTO hd = new HoaDonDTO();
+                hd.setNgayLapHD(new Date());
+                hd.setMaNV(maNV);
+                hd.setMaKH(selectedCustomerId > 0 ? selectedCustomerId : 0);
+                hd.setThanhTien(finalAmount);
+
+                HoaDonBUS bus = new HoaDonBUS();
+                int maHD = bus.themKemChiTiet(hd, dsChiTiet);
+                if (maHD <= 0) {
+                    throw new IllegalStateException("Không tạo được hóa đơn.");
+                }
+
+                JOptionPane.showMessageDialog(this,
+                        "✅ Thanh toán thành công!\n\nMã hóa đơn: " + maHD,
+                        "Thành công",
+                        JOptionPane.INFORMATION_MESSAGE);
+
+                // Reset
+                cartModel.setRowCount(0);
+                txtPhoneCustomer.setText("");
+                txtCustomerName.setText("");
+                lblCustomerPoints.setText("0 điểm");
+                selectedCustomerId = -1;
+                customerDiscount = 0;
+                promotionDiscount = 0;
+                selectedPromotion = null;
+                discount = 0;
+                updateCartTotal();
+                loadProducts();
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this,
+                        "Thanh toán thất bại: " + ex.getMessage(),
+                        "Lỗi",
+                        JOptionPane.ERROR_MESSAGE);
+            }
         }
+    }
+
+    private int getDefaultEmployeeId() {
+        String sql = "SELECT MaNV FROM nhanvien ORDER BY MaNV LIMIT 1";
+        try (Connection conn = ConnectDatabase.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt("MaNV");
+            }
+        } catch (Exception ex) {
+            // Trả về 0 để flow gọi xử lý thông báo lỗi thống nhất.
+        }
+        return 0;
+    }
+
+    private ArrayList<ChiTietHoaDonDTO> buildInvoiceDetailsFromCart() {
+        ArrayList<ChiTietHoaDonDTO> ds = new ArrayList<>();
+        for (int i = 0; i < cartModel.getRowCount(); i++) {
+            String tenTrongGio = String.valueOf(cartModel.getValueAt(i, 1));
+            String tenBanh = normalizeProductNameForLookup(tenTrongGio);
+            int maBanh = getProductIdByName(tenBanh);
+            if (maBanh <= 0) {
+                throw new IllegalArgumentException("Không tìm thấy mã bánh cho sản phẩm: " + tenTrongGio);
+            }
+
+            int soLuong = Integer.parseInt(String.valueOf(cartModel.getValueAt(i, 2)));
+            if (soLuong <= 0) {
+                continue;
+            }
+
+            double donGia = parsePrice(String.valueOf(cartModel.getValueAt(i, 3)));
+            if (isGiftRow(i)) {
+                donGia = 0;
+            }
+
+            ChiTietHoaDonDTO ct = new ChiTietHoaDonDTO();
+            ct.setMaBanh(maBanh);
+            ct.setSoLuong(soLuong);
+            ct.setDonGia(donGia);
+            double thanhTien = soLuong * donGia;
+            ct.setThanhTien(thanhTien);
+            ct.setDiem((int) (thanhTien / 100000));
+            ds.add(ct);
+        }
+        return ds;
+    }
+
+    private int getProductIdByName(String tenBanh) {
+        String key = chuanHoaTenSanPham(tenBanh);
+        for (int i = 0; i < productModel.getRowCount(); i++) {
+            String ten = chuanHoaTenSanPham(String.valueOf(productModel.getValueAt(i, 1)));
+            if (key.equals(ten)) {
+                return Integer.parseInt(String.valueOf(productModel.getValueAt(i, 0)));
+            }
+        }
+        return 0;
+    }
+
+    private String normalizeProductNameForLookup(String rawName) {
+        if (rawName == null) {
+            return "";
+        }
+        String name = rawName.trim();
+        if (name.endsWith("(Tặng)")) {
+            name = name.substring(0, name.length() - "(Tặng)".length()).trim();
+        }
+        return name;
     }
 
     private void showPromotionPicker() {
@@ -879,17 +1008,6 @@ public class QuanLiBanHangPanel extends JPanel {
             }
         }
         return "";
-    }
-
-    /**
-     * Chuẩn NFC + gom khoảng trắng — tránh DB/collation khác Unicode với chuỗi
-     * trong code.
-     */
-    private static String chuanHoaLoaiKhuyenMai(String loai) {
-        if (loai == null) {
-            return "";
-        }
-        return Normalizer.normalize(loai.trim(), Normalizer.Form.NFC).replaceAll("\\s+", " ");
     }
 
     /** So khớp “Mua X tặng Y” kể cả khác khoảng trắng / dạng Unicode. */

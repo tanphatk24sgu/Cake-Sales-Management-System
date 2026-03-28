@@ -14,7 +14,7 @@ public class DonViTinhDAO {
     public ArrayList<DonViTinhDTO> docDSDVT() {
         ArrayList<DonViTinhDTO> dsdvt = new ArrayList<>();
         try {
-            conn = ConnectDatabase.getInstance().getConnection();
+            conn = ConnectDatabase.getConnection();
 
             String qry = "SELECT * FROM donvitinh";
 
@@ -44,7 +44,7 @@ public class DonViTinhDAO {
 
     public void them(DonViTinhDTO dvt) {
         try {
-            conn = ConnectDatabase.getInstance().getConnection();
+            conn = ConnectDatabase.getConnection();
             String qry = "INSERT INTO donvitinh (Ten) VALUES (?)";
             PreparedStatement pst = conn.prepareStatement(qry);
             pst.setString(1, dvt.getTen());
@@ -61,7 +61,7 @@ public class DonViTinhDAO {
 
     public void sua(DonViTinhDTO dvt) {
         try {
-            conn = ConnectDatabase.getInstance().getConnection();
+            conn = ConnectDatabase.getConnection();
             String qry = "UPDATE donvitinh SET Ten=? WHERE MaDVT=?";
             PreparedStatement pst = conn.prepareStatement(qry);
             pst.setString(1, dvt.getTen());
@@ -79,7 +79,7 @@ public class DonViTinhDAO {
 
     public void xoa(int maDVT) {
         try {
-            conn = ConnectDatabase.getInstance().getConnection();
+            conn = ConnectDatabase.getConnection();
             String qry = "DELETE FROM donvitinh WHERE MaDVT=?";
             PreparedStatement pst = conn.prepareStatement(qry);
             pst.setInt(1, maDVT);
@@ -97,7 +97,7 @@ public class DonViTinhDAO {
     public DonViTinhDTO timKiemTheoMa(int maDVT) {
         DonViTinhDTO dvt = null;
         try {
-            conn = ConnectDatabase.getInstance().getConnection();
+            conn = ConnectDatabase.getConnection();
             String qry = "SELECT * FROM donvitinh WHERE MaDVT = ?";
             PreparedStatement pst = conn.prepareStatement(qry);
             pst.setInt(1, maDVT);

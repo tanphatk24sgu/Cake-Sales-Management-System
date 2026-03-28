@@ -21,4 +21,11 @@ public class CongThucBUS {
             return dao.insert(ct);
         }
     }
+
+    public boolean delete(int maBanh) {
+        if (maBanh <= 0) {
+            return false;
+        }
+        return dao.delete(maBanh);
+    }
 }

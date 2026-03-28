@@ -14,7 +14,7 @@ public class NhanVienDAO {
     public ArrayList<NhanVienDTO> docDSNV() {
         ArrayList<NhanVienDTO> dsnv = new ArrayList<>();
         try {
-            conn = ConnectDatabase.getInstance().getConnection();
+            conn = ConnectDatabase.getConnection();
             
             String qry = "SELECT * FROM nhanvien";     
             
@@ -48,7 +48,7 @@ public class NhanVienDAO {
 
     public void them(NhanVienDTO nv) {
         try {
-            conn = ConnectDatabase.getInstance().getConnection();
+            conn = ConnectDatabase.getConnection();
             String qry = "INSERT INTO nhanvien (Ho, Ten, NgaySinh, LuongCoBan, ChucVu) VALUES (?, ?, ?, ?, ?)";
             PreparedStatement pst = conn.prepareStatement(qry);
             pst.setString(1, nv.getHo());
@@ -69,7 +69,7 @@ public class NhanVienDAO {
 
     public void sua(NhanVienDTO nv) {
         try {
-            conn = ConnectDatabase.getInstance().getConnection();
+            conn = ConnectDatabase.getConnection();
             String qry = "UPDATE nhanvien SET Ho=?, Ten=?, NgaySinh=?, LuongCoBan=?, ChucVu=? WHERE MaNV=?";
             PreparedStatement pst = conn.prepareStatement(qry);
             pst.setString(1, nv.getHo());
@@ -91,7 +91,7 @@ public class NhanVienDAO {
 
     public void xoa(int maNV) {
         try {
-            conn = ConnectDatabase.getInstance().getConnection();
+            conn = ConnectDatabase.getConnection();
             String qry = "DELETE FROM nhanvien WHERE MaNV=?";
             PreparedStatement pst = conn.prepareStatement(qry);
             pst.setInt(1, maNV);
@@ -109,7 +109,7 @@ public class NhanVienDAO {
     public NhanVienDTO timKiemTheoMa(int maNV) {
         NhanVienDTO nv = null;
         try {
-            conn = ConnectDatabase.getInstance().getConnection();
+            conn = ConnectDatabase.getConnection();
             String qry = "SELECT * FROM nhanvien WHERE MaNV = ?";
             PreparedStatement pst = conn.prepareStatement(qry);
             pst.setInt(1, maNV);
@@ -140,8 +140,8 @@ public class NhanVienDAO {
     public NhanVienDTO timKiemTheoTen(String tenNV){
         NhanVienDTO nv = null;
         try{
-            conn=ConnectDatabase.getInstance().getConnection();
-            String qry="SELECT* FROM nhanvien where tenNV=?";
+            conn=ConnectDatabase.getConnection();
+            String qry="SELECT * FROM nhanvien WHERE Ten = ?";
             PreparedStatement pst=conn.prepareStatement(qry);
             pst.setString(1, tenNV);
             rs =pst.executeQuery();
@@ -163,7 +163,7 @@ public class NhanVienDAO {
                 if(rs!=null) rs.close();
             } catch(Exception e){}
             try{
-                if(rs!=null) conn.close();
+                if(conn!=null) conn.close();
             } catch(Exception e){}
         }
         return nv;

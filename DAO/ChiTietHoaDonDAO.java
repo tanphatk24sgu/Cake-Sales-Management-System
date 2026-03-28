@@ -14,7 +14,7 @@ public class ChiTietHoaDonDAO {
     public ArrayList<ChiTietHoaDonDTO> docDSCTHD() {
         ArrayList<ChiTietHoaDonDTO> dscthd = new ArrayList<>();
         try {
-            conn = ConnectDatabase.getInstance().getConnection();
+            conn = ConnectDatabase.getConnection();
 
             String qry = "SELECT * FROM chitiethoadon";
 
@@ -47,39 +47,51 @@ public class ChiTietHoaDonDAO {
     }
 
     public void them(ChiTietHoaDonDTO cthd) {
+        String qry = "INSERT INTO chitiethoadon (MaHD, MaBanh, SoLuong, DonGia, Diem) VALUES (?, ?, ?, ?, ?)";
         try {
-            String qry = "INSERT INTO chitiethoadon VALUES('";
-            qry += cthd.getMaHD() + "', ";
-            qry += cthd.getMaBanh() + "', ";
-            qry += cthd.getSoLuong() + "', ";
-            qry += cthd.getDonGia() + "', ";
-            qry += cthd.getThanhTien() + "', ";
-            qry += cthd.getDiem() + "')";
-
-            st = conn.createStatement();
-            st.executeUpdate(qry);
+            conn = ConnectDatabase.getConnection();
+            PreparedStatement pst = conn.prepareStatement(qry);
+            pst.setInt(1, cthd.getMaHD());
+            pst.setInt(2, cthd.getMaBanh());
+            pst.setInt(3, cthd.getSoLuong());
+            pst.setDouble(4, cthd.getDonGia());
+            pst.setInt(5, cthd.getDiem());
+            pst.executeUpdate();
+            pst.close();
         } catch(SQLException e) {
             JOptionPane.showMessageDialog(null, "SQL Error: " + e.getMessage());
         }
     }
 
     public void xoa(int maHD, int maBanh) {
+        String qry = "DELETE FROM chitiethoadon WHERE MaHD = ? AND MaBanh = ?";
         try {
-            String qry = "DELETE FROM chitiethoadon WHERE MaHD = '" + maHD + "' AND MaBanh = '" + maBanh + "'";
-            st = conn.createStatement();
-            st.executeUpdate(qry);
+            conn = ConnectDatabase.getConnection();
+            PreparedStatement pst = conn.prepareStatement(qry);
+            pst.setInt(1, maHD);
+            pst.setInt(2, maBanh);
+            pst.executeUpdate();
+            pst.close();
         } catch(SQLException e) {
             JOptionPane.showMessageDialog(null, "SQL Error: " + e.getMessage());
         }
     }
 
     public void sua(ChiTietHoaDonDTO cthd) {
+        String qry = "UPDATE chitiethoadon SET SoLuong = ?, DonGia = ?, Diem = ? WHERE MaHD = ? AND MaBanh = ?";
         try {
-            String qry = "UPDATE chitiethoadon SET ";
-
-            st = conn.createStatement();
-            st.executeUpdate(qry);
-        } catch(SQLException e) {}
+            conn = ConnectDatabase.getConnection();
+            PreparedStatement pst = conn.prepareStatement(qry);
+            pst.setInt(1, cthd.getSoLuong());
+            pst.setDouble(2, cthd.getDonGia());
+            pst.setInt(3, cthd.getDiem());
+            pst.setInt(4, cthd.getMaHD());
+            pst.setInt(5, cthd.getMaBanh());
+            pst.executeUpdate();
+            pst.close();
+        } catch(SQLException e) {
+            JOptionPane.showMessageDialog(null, "SQL Error: " + e.getMessage());
+        }
     }
 
     // TODO 
@@ -88,20 +100,21 @@ public class ChiTietHoaDonDAO {
 
     public ArrayList<ChiTietHoaDonDTO> timKiemTheoHoaDon(String maHD) {
         ArrayList<ChiTietHoaDonDTO> dscthd = new ArrayList<>();
+        String qry = "SELECT * FROM chitiethoadon WHERE MaHD = ?";
         try {
-            String qry = "SELECT * FROM chitiethoadon WHERE maHD = '" + maHD + "'";
-
-            st = conn.createStatement();
-            rs = st.executeQuery(qry);
+            conn = ConnectDatabase.getConnection();
+            PreparedStatement pst = conn.prepareStatement(qry);
+            pst.setInt(1, Integer.parseInt(maHD));
+            rs = pst.executeQuery();
 
             while(rs.next()) {
                 ChiTietHoaDonDTO cthd = new ChiTietHoaDonDTO();
-                cthd.setMaHD(Integer.parseInt("MaHD"));
-                cthd.setMaBanh(Integer.parseInt("MaBanh"));
-                cthd.setSoLuong(Integer.parseInt("SoLuong"));
-                cthd.setDonGia(Double.parseDouble("DonGia"));
-                cthd.setThanhTien(Double.parseDouble("ThanhTien"));
-                cthd.setDiem(Integer.parseInt("Diem"));
+                cthd.setMaHD(rs.getInt("MaHD"));
+                cthd.setMaBanh(rs.getInt("MaBanh"));
+                cthd.setSoLuong(rs.getInt("SoLuong"));
+                cthd.setDonGia(rs.getDouble("DonGia"));
+                cthd.setThanhTien(rs.getDouble("ThanhTien"));
+                cthd.setDiem(rs.getInt("Diem"));
 
                 dscthd.add(cthd);
             }
@@ -121,10 +134,12 @@ public class ChiTietHoaDonDAO {
     public int thongKeSoLuongBan(int maBanh) {
         int tong = 0;
         try {
-            String qry = "SELECT IFNULL(SUM(SoLuong), 0) AS Tong FROM chitiethoadon";
+            String qry = "SELECT IFNULL(SUM(SoLuong), 0) AS Tong FROM chitiethoadon WHERE MaBanh = ?";
 
-            st = conn.createStatement();
-            rs = st.executeQuery(qry);
+            conn = ConnectDatabase.getConnection();
+            PreparedStatement pst = conn.prepareStatement(qry);
+            pst.setInt(1, maBanh);
+            rs = pst.executeQuery();
 
             if (rs.next()) {
                 tong = rs.getInt("Tong");

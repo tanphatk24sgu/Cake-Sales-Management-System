@@ -5,6 +5,11 @@ import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.*;
 
+import BUS.BanhBus;
+import BUS.CongThucBUS;
+import DTO.BanhDTO;
+import DTO.CongThucDTO;
+
 public class QuanLiBanhPanel extends JPanel {
 
     // Khai báo components
@@ -12,6 +17,9 @@ public class QuanLiBanhPanel extends JPanel {
     private DefaultTableModel tableModel;
     private JTextField txtSearch;
     private JButton btnAdd, btnEdit, btnDelete, btnRefresh;
+    private JLabel lblTotal;
+    private final BanhBus bus = new BanhBus();
+    private final CongThucBUS congThucBus = new CongThucBUS();
 
     // Màu sắc
     private Color primaryColor = new Color(236, 72, 153);
@@ -34,8 +42,7 @@ public class QuanLiBanhPanel extends JPanel {
         add(createTablePanel(), BorderLayout.CENTER);
         add(createToolbar(), BorderLayout.SOUTH);
 
-        // Load dữ liệu mẫu
-        loadSampleData();
+        loadDataFromDB();
     }
 
     // ==================== HEADER ====================
@@ -100,6 +107,8 @@ public class QuanLiBanhPanel extends JPanel {
         });
 
         JButton btnSearch = createStyledButton("Tìm", primaryColor, 80);
+        btnSearch.addActionListener(e -> searchBanh());
+        txtSearch.addActionListener(e -> searchBanh());
 
         searchPanel.add(lblSearch);
         searchPanel.add(txtSearch);
@@ -120,13 +129,13 @@ public class QuanLiBanhPanel extends JPanel {
                 BorderFactory.createEmptyBorder(0, 0, 0, 0)));
 
         // Định nghĩa cột
-        String[] columns = { "Mã bánh", "Tên bánh", "Số lượng", "Đơn vị tính", "Loại bánh", "Hãng SX" };
+        String[] columns = { "Mã bánh", "Tên bánh", "Số lượng", "Đơn vị tính", "Loại bánh", "Hãng SX", "☰" };
 
         // Tạo model (không cho edit trực tiếp)
         tableModel = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return false;
+                return column == 6;
             }
         };
 
@@ -171,6 +180,10 @@ public class QuanLiBanhPanel extends JPanel {
         table.getColumnModel().getColumn(3).setPreferredWidth(100); // Đơn vị
         table.getColumnModel().getColumn(4).setPreferredWidth(120); // Loại
         table.getColumnModel().getColumn(5).setPreferredWidth(120); // Hãng
+        table.getColumnModel().getColumn(6).setPreferredWidth(40); // Action
+        table.getColumnModel().getColumn(6).setMaxWidth(40);
+        table.getColumnModel().getColumn(6).setCellRenderer(new FormulaActionRenderer());
+        table.getColumnModel().getColumn(6).setCellEditor(new FormulaActionEditor(table));
 
         // Alternating row colors
         table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
@@ -185,8 +198,8 @@ public class QuanLiBanhPanel extends JPanel {
                     c.setBackground(row % 2 == 0 ? Color.WHITE : new Color(249, 250, 251));
                 }
 
-                // Căn giữa cột 0 và 2
-                if (column == 0 || column == 2) {
+                // Căn giữa cột số và cột action
+                if (column == 0 || column == 2 || column == 6) {
                     ((JLabel) c).setHorizontalAlignment(JLabel.CENTER);
                 } else {
                     ((JLabel) c).setHorizontalAlignment(JLabel.LEFT);
@@ -236,7 +249,7 @@ public class QuanLiBanhPanel extends JPanel {
         JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
         rightPanel.setBackground(bgColor);
 
-        JLabel lblTotal = new JLabel("Tổng: " + tableModel.getRowCount() + " bánh");
+        lblTotal = new JLabel("Tổng: " + tableModel.getRowCount() + " bánh");
         lblTotal.setFont(normalFont);
         lblTotal.setForeground(new Color(107, 114, 128));
 
@@ -289,21 +302,55 @@ public class QuanLiBanhPanel extends JPanel {
         return btn;
     }
 
-    private void loadSampleData() {
-        // Dữ liệu mẫu
-        Object[][] data = {
-                { 1, "Bánh kem socola", 50, "Cái", "Bánh kem", "ABC Bakery" },
-                { 2, "Bánh mì bơ tỏi", 100, "Cái", "Bánh mì", "XYZ Shop" },
-                { 3, "Bánh su kem", 75, "Hộp", "Bánh ngọt", "ABC Bakery" },
-                { 4, "Bánh croissant", 30, "Cái", "Bánh mì", "Paris Bakery" },
-                { 5, "Bánh phô mai", 45, "Cái", "Bánh kem", "Sweet Home" },
-                { 6, "Bánh cupcake", 80, "Hộp", "Bánh ngọt", "ABC Bakery" },
-                { 7, "Bánh tiramisu", 25, "Cái", "Bánh kem", "Italy House" },
-                { 8, "Bánh tart trứng", 60, "Cái", "Bánh ngọt", "XYZ Shop" },
-        };
+    private void loadDataFromDB() {
+        bus.loadData();
+        tableModel.setRowCount(0);
+        for (BanhDTO b : bus.getList()) {
+            tableModel.addRow(new Object[] {
+                    b.getMaBanh(),
+                    b.getTenBanh(),
+                    b.getSoLuong(),
+                    b.getMaDVT(),
+                    b.getMaLoai(),
+                    b.getMaHang(),
+                    "☰"
+            });
+        }
+        if (lblTotal != null) {
+            lblTotal.setText("Tổng: " + tableModel.getRowCount() + " bánh");
+        }
+    }
 
-        for (Object[] row : data) {
-            tableModel.addRow(row);
+    private void searchBanh() {
+        String key = txtSearch.getText().trim().toLowerCase();
+        if (key.isEmpty() || key.equals("nhập tên bánh...")) {
+            loadDataFromDB();
+            return;
+        }
+
+        bus.loadData();
+        tableModel.setRowCount(0);
+        for (BanhDTO b : bus.getList()) {
+            boolean matchName = b.getTenBanh() != null && b.getTenBanh().toLowerCase().contains(key);
+            boolean matchId = false;
+            try {
+                matchId = b.getMaBanh() == Integer.parseInt(key);
+            } catch (NumberFormatException ignored) {
+            }
+            if (matchName || matchId) {
+                tableModel.addRow(new Object[] {
+                        b.getMaBanh(),
+                        b.getTenBanh(),
+                        b.getSoLuong(),
+                        b.getMaDVT(),
+                        b.getMaLoai(),
+                    b.getMaHang(),
+                    "☰"
+                });
+            }
+        }
+        if (lblTotal != null) {
+            lblTotal.setText("Tổng: " + tableModel.getRowCount() + " bánh");
         }
     }
 
@@ -324,8 +371,8 @@ public class QuanLiBanhPanel extends JPanel {
         }
 
         // Lấy dữ liệu dòng đang chọn
-        Object[] rowData = new Object[tableModel.getColumnCount()];
-        for (int i = 0; i < tableModel.getColumnCount(); i++) {
+        Object[] rowData = new Object[6];
+        for (int i = 0; i < 6; i++) {
             rowData[i] = tableModel.getValueAt(selectedRow, i);
         }
 
@@ -335,7 +382,7 @@ public class QuanLiBanhPanel extends JPanel {
 
     private JDialog createBanhDialog(String title, Object[] data) {
         JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), title, true);
-        dialog.setSize(450, 400);
+        dialog.setSize(520, 560);
         dialog.setLocationRelativeTo(this);
         dialog.setLayout(new BorderLayout());
 
@@ -380,6 +427,37 @@ public class QuanLiBanhPanel extends JPanel {
             formPanel.add(fields[i], gbc);
         }
 
+        // Khu vực công thức khi thêm/sửa bánh tự sản xuất
+        JPanel formulaPanel = new JPanel(new BorderLayout(6, 6));
+        formulaPanel.setBackground(Color.WHITE);
+        formulaPanel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(229, 231, 235)),
+                BorderFactory.createEmptyBorder(8, 8, 8, 8)));
+
+        JLabel lblFormula = new JLabel("Công thức (bánh tự sản xuất):");
+        lblFormula.setFont(boldFont);
+        JTextArea txtCongThuc = new JTextArea(5, 30);
+        txtCongThuc.setFont(normalFont);
+        txtCongThuc.setLineWrap(true);
+        txtCongThuc.setWrapStyleWord(true);
+        txtCongThuc.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
+
+        if (data != null) {
+            int maBanh = Integer.parseInt(String.valueOf(data[0]));
+            CongThucDTO ct = congThucBus.getByMaBanh(maBanh);
+            if (ct != null && ct.getCachLam() != null) {
+                txtCongThuc.setText(ct.getCachLam());
+            }
+        }
+
+        formulaPanel.add(lblFormula, BorderLayout.NORTH);
+        formulaPanel.add(new JScrollPane(txtCongThuc), BorderLayout.CENTER);
+
+        JPanel centerWrap = new JPanel(new BorderLayout(0, 10));
+        centerWrap.setBackground(Color.WHITE);
+        centerWrap.add(formPanel, BorderLayout.NORTH);
+        centerWrap.add(formulaPanel, BorderLayout.CENTER);
+
         // Panel buttons
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 15));
         buttonPanel.setBackground(new Color(249, 250, 251));
@@ -388,26 +466,39 @@ public class QuanLiBanhPanel extends JPanel {
         JButton btnCancel = createStyledButton("Hủy", new Color(107, 114, 128), 100);
 
         btnSave.addActionListener(e -> {
-            // TODO: Validate và lưu dữ liệu
-            if (data == null) {
-                // Thêm mới
-                Object[] newRow = new Object[fields.length];
-                for (int i = 0; i < fields.length; i++) {
-                    newRow[i] = fields[i].getText();
+            try {
+                BanhDTO b = new BanhDTO();
+                b.setTenBanh(fields[1].getText().trim());
+                b.setSoLuong(Integer.parseInt(fields[2].getText().trim()));
+                b.setMaDVT(Integer.parseInt(fields[3].getText().trim()));
+                b.setMaLoai(Integer.parseInt(fields[4].getText().trim()));
+                b.setMaHang(Integer.parseInt(fields[5].getText().trim()));
+
+                boolean ok;
+                if (data == null) {
+                    b.setMaBanh(Integer.parseInt(fields[0].getText().trim()));
+                    ok = bus.add(b);
+                } else {
+                    b.setMaBanh(Integer.parseInt(fields[0].getText().trim()));
+                    ok = bus.update(b);
                 }
-                tableModel.addRow(newRow);
-                JOptionPane.showMessageDialog(dialog, "Thêm bánh thành công!", "Thông báo",
-                        JOptionPane.INFORMATION_MESSAGE);
-            } else {
-                // Cập nhật
-                int selectedRow = table.getSelectedRow();
-                for (int i = 0; i < fields.length; i++) {
-                    tableModel.setValueAt(fields[i].getText(), selectedRow, i);
+
+                if (!ok) {
+                    JOptionPane.showMessageDialog(dialog, "Lưu dữ liệu thất bại!", "Lỗi",
+                            JOptionPane.ERROR_MESSAGE);
+                    return;
                 }
-                JOptionPane.showMessageDialog(dialog, "Cập nhật thành công!", "Thông báo",
+
+                saveFormulaIfAny(b.getMaBanh(), b.getMaDVT(), txtCongThuc.getText().trim());
+
+                loadDataFromDB();
+                JOptionPane.showMessageDialog(dialog, "Lưu thành công!", "Thông báo",
                         JOptionPane.INFORMATION_MESSAGE);
+                dialog.dispose();
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(dialog, "Dữ liệu không hợp lệ: " + ex.getMessage(), "Lỗi",
+                        JOptionPane.ERROR_MESSAGE);
             }
-            dialog.dispose();
         });
 
         btnCancel.addActionListener(e -> dialog.dispose());
@@ -415,10 +506,159 @@ public class QuanLiBanhPanel extends JPanel {
         buttonPanel.add(btnSave);
         buttonPanel.add(btnCancel);
 
-        dialog.add(formPanel, BorderLayout.CENTER);
+        dialog.add(centerWrap, BorderLayout.CENTER);
         dialog.add(buttonPanel, BorderLayout.SOUTH);
 
         return dialog;
+    }
+
+    private void saveFormulaIfAny(int maBanh, int maDvt, String cachLam) {
+        if (cachLam == null || cachLam.isEmpty()) {
+            return;
+        }
+
+        CongThucDTO ct = new CongThucDTO();
+        ct.setMaBanh(maBanh);
+        ct.setMaDVT(maDvt <= 0 ? 1 : maDvt);
+        ct.setCachLam(cachLam);
+        congThucBus.save(ct);
+    }
+
+    private void showCongThucDialog(int maBanh, String tenBanh, int maDvt) {
+        JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Công thức bánh", true);
+        dialog.setSize(620, 420);
+        dialog.setLocationRelativeTo(this);
+        dialog.setLayout(new BorderLayout(10, 10));
+
+        JPanel header = new JPanel(new BorderLayout());
+        header.setBackground(Color.WHITE);
+        header.setBorder(BorderFactory.createEmptyBorder(12, 12, 0, 12));
+        JLabel lblTitle = new JLabel("🎂 " + tenBanh + " (Mã: " + maBanh + ")");
+        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        lblTitle.setForeground(primaryColor);
+        header.add(lblTitle, BorderLayout.WEST);
+
+        JTextArea txtFormula = new JTextArea();
+        txtFormula.setFont(normalFont);
+        txtFormula.setLineWrap(true);
+        txtFormula.setWrapStyleWord(true);
+        txtFormula.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        CongThucDTO current = congThucBus.getByMaBanh(maBanh);
+        if (current != null && current.getCachLam() != null) {
+            txtFormula.setText(current.getCachLam());
+        }
+
+        JScrollPane scroll = new JScrollPane(txtFormula);
+        scroll.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(229, 231, 235)),
+                BorderFactory.createEmptyBorder(8, 8, 8, 8)));
+
+        JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
+        buttons.setBackground(new Color(249, 250, 251));
+        JButton btnSave = createStyledButton("💾 Lưu", new Color(34, 197, 94), 95);
+        JButton btnDelete = createStyledButton("🗑 Xóa", new Color(239, 68, 68), 95);
+        JButton btnClose = createStyledButton("Đóng", new Color(107, 114, 128), 95);
+
+        btnSave.addActionListener(e -> {
+            String text = txtFormula.getText().trim();
+            if (text.isEmpty()) {
+                JOptionPane.showMessageDialog(dialog, "Công thức đang trống.", "Thông báo",
+                        JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            CongThucDTO ct = new CongThucDTO();
+            ct.setMaBanh(maBanh);
+            ct.setMaDVT(maDvt <= 0 ? 1 : maDvt);
+            ct.setCachLam(text);
+            if (congThucBus.save(ct)) {
+                JOptionPane.showMessageDialog(dialog, "Đã lưu công thức!", "Thông báo",
+                        JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(dialog, "Lưu công thức thất bại!", "Lỗi",
+                        JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        btnDelete.addActionListener(e -> {
+            int confirm = JOptionPane.showConfirmDialog(dialog,
+                    "Bạn có chắc muốn xóa công thức của bánh này?",
+                    "Xác nhận",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.QUESTION_MESSAGE);
+            if (confirm == JOptionPane.YES_OPTION) {
+                if (congThucBus.delete(maBanh)) {
+                    txtFormula.setText("");
+                    JOptionPane.showMessageDialog(dialog, "Đã xóa công thức.", "Thông báo",
+                            JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(dialog, "Không có công thức để xóa.", "Thông báo",
+                            JOptionPane.WARNING_MESSAGE);
+                }
+            }
+        });
+
+        btnClose.addActionListener(e -> dialog.dispose());
+
+        buttons.add(btnSave);
+        buttons.add(btnDelete);
+        buttons.add(btnClose);
+
+        dialog.add(header, BorderLayout.NORTH);
+        dialog.add(scroll, BorderLayout.CENTER);
+        dialog.add(buttons, BorderLayout.SOUTH);
+        dialog.setVisible(true);
+    }
+
+    private class FormulaActionRenderer extends JButton implements TableCellRenderer {
+        public FormulaActionRenderer() {
+            setText("☰");
+            setFont(new Font("Segoe UI", Font.BOLD, 16));
+            setFocusPainted(false);
+            setBorderPainted(false);
+            setContentAreaFilled(false);
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
+                boolean hasFocus, int row, int column) {
+            setForeground(primaryColor.darker());
+            return this;
+        }
+    }
+
+    private class FormulaActionEditor extends DefaultCellEditor {
+        private final JButton button;
+
+        public FormulaActionEditor(JTable table) {
+            super(new JCheckBox());
+            button = new JButton("☰");
+            button.setFont(new Font("Segoe UI", Font.BOLD, 16));
+            button.setFocusPainted(false);
+            button.setBorderPainted(false);
+            button.setContentAreaFilled(false);
+            button.addActionListener(e -> {
+                int row = table.getEditingRow();
+                if (row >= 0) {
+                    int maBanh = Integer.parseInt(String.valueOf(table.getValueAt(row, 0)));
+                    String tenBanh = String.valueOf(table.getValueAt(row, 1));
+                    int maDvt = Integer.parseInt(String.valueOf(table.getValueAt(row, 3)));
+                    SwingUtilities.invokeLater(() -> showCongThucDialog(maBanh, tenBanh, maDvt));
+                }
+                fireEditingStopped();
+            });
+        }
+
+        @Override
+        public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row,
+                int column) {
+            return button;
+        }
+
+        @Override
+        public Object getCellEditorValue() {
+            return "☰";
+        }
     }
 
     private void deleteSelected() {
@@ -431,6 +671,7 @@ public class QuanLiBanhPanel extends JPanel {
             return;
         }
 
+        int maBanh = Integer.parseInt(tableModel.getValueAt(selectedRow, 0).toString());
         String tenBanh = tableModel.getValueAt(selectedRow, 1).toString();
         int confirm = JOptionPane.showConfirmDialog(this,
                 "Bạn có chắc muốn xóa \"" + tenBanh + "\"?",
@@ -439,14 +680,17 @@ public class QuanLiBanhPanel extends JPanel {
                 JOptionPane.QUESTION_MESSAGE);
 
         if (confirm == JOptionPane.YES_OPTION) {
-            tableModel.removeRow(selectedRow);
-            JOptionPane.showMessageDialog(this, "Xóa thành công!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+            if (bus.delete(maBanh)) {
+                loadDataFromDB();
+                JOptionPane.showMessageDialog(this, "Xóa thành công!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this, "Xóa thất bại!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 
     private void refreshTable() {
-        tableModel.setRowCount(0);
-        loadSampleData();
+        loadDataFromDB();
         JOptionPane.showMessageDialog(this, "Đã làm mới dữ liệu!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
     }
 

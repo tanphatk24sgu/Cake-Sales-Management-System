@@ -68,7 +68,7 @@ public class NhanVienBUS {
     }
     public NhanVienDTO timKiemTheoTen(String tenNV){
         for (NhanVienDTO nv : dsnv){
-            if(nv.getTen()==tenNV){
+            if(nv.getTen() != null && nv.getTen().equalsIgnoreCase(tenNV)){
                 return nv;
             }
         }

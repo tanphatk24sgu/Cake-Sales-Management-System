@@ -59,7 +59,7 @@ public class ConnectDatabase {
 
     public static void main(String[] args) {
         ConnectDatabase db = ConnectDatabase.getInstance();
-        Connection conn = db.getConnection();
+        Connection conn = ConnectDatabase.getConnection();
 
         if (conn != null) {
             System.out.println("Test kết nối MySQL thành công!");

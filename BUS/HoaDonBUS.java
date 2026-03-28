@@ -2,6 +2,7 @@ package BUS;
 
 import java.util.ArrayList;
 import DTO.HoaDonDTO;
+import DTO.ChiTietHoaDonDTO;
 import DAO.HoaDonDAO;
 import java.sql.Date;
 
@@ -23,20 +24,30 @@ public class HoaDonBUS {
     }
 
     public void them(HoaDonDTO hd) {
-        // TODO Kiểm tra dữ liệu hợp lệ
-
-        // TODO Kiểm tra mã duy nhất
-
-        if(isMaTonTai(hd.getMaHD()))  return;
-
         HoaDonDAO data = new HoaDonDAO();
-        data.them(hd);
-        dshd.add(hd);
+        int maMoi = data.them(hd);
+        if (maMoi > 0) {
+            hd.setMaHD(maMoi);
+            dshd.add(hd);
+        }
+    }
+
+    public int themKemChiTiet(HoaDonDTO hd, ArrayList<ChiTietHoaDonDTO> dsChiTiet) throws Exception {
+        HoaDonDAO data = new HoaDonDAO();
+        int maMoi = data.themHoaDonKemChiTiet(hd, dsChiTiet);
+        if (maMoi > 0) {
+            hd.setMaHD(maMoi);
+            dshd.add(hd);
+        }
+        return maMoi;
     }
 
     public void xoa(int maHD) {
         HoaDonDAO data = new HoaDonDAO();
-        data.xoa(maHD);
+        boolean ok = data.xoa(maHD);
+        if (!ok) {
+            return;
+        }
 
         for(int i = 0;i < dshd.size();i++) {
             if(dshd.get(i).getMaHD() == maHD) {
@@ -48,7 +59,10 @@ public class HoaDonBUS {
 
     public void sua(HoaDonDTO hd) {
         HoaDonDAO data = new HoaDonDAO();
-        data.sua(hd);
+        boolean ok = data.sua(hd);
+        if (!ok) {
+            return;
+        }
 
         for(int i = 0;i < dshd.size();i++) {
             if(dshd.get(i).getMaHD() == hd.getMaHD()) {

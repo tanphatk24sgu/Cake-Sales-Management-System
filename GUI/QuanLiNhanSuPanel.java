@@ -1,5 +1,3 @@
-// package GUI;
-
 import javax.swing.*;
 import javax.swing.table.*;
 
@@ -8,60 +6,47 @@ import DTO.NhanVienDTO;
 
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.geom.RoundRectangle2D;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 
 public class QuanLiNhanSuPanel extends JPanel {
 
-    // Khai báo components
-    private void updateTotalLabel() {
-
-        if (lblTotal != null) {
-            lblTotal.setText(
-                "Tổng: " 
-                + tableModel.getRowCount() 
-                + " nhân viên"
-            );
-        }
-
-    }
-    private JLabel lblTotal;
     private JTable table;
     private DefaultTableModel tableModel;
     private JTextField txtSearch;
+    private JLabel lblTotal;
     private JButton btnAdd, btnEdit, btnDelete, btnRefresh;
 
-    // Màu sắc
-    private Color primaryColor = new Color(236, 72, 153);
-    private Color primaryLight = new Color(251, 207, 232);
-    private Color bgColor = new Color(249, 250, 251);
-    private Color cardColor = Color.WHITE;
+    private final Color primaryColor = new Color(236, 72, 153);
+    private final Color primaryLight = new Color(251, 207, 232);
+    private final Color bgColor = new Color(249, 250, 251);
+    private final Color cardColor = Color.WHITE;
 
-    // Font
-    private Font titleFont = new Font("Segoe UI", Font.BOLD, 24);
-    private Font normalFont = new Font("Segoe UI", Font.PLAIN, 14);
-    private Font boldFont = new Font("Segoe UI", Font.BOLD, 14);
+    private final Font titleFont = new Font("Segoe UI", Font.BOLD, 24);
+    private final Font normalFont = new Font("Segoe UI", Font.PLAIN, 14);
+    private final Font boldFont = new Font("Segoe UI", Font.BOLD, 14);
+
+    private final NhanVienBUS bus = new NhanVienBUS();
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
     public QuanLiNhanSuPanel() {
         setBackground(bgColor);
         setLayout(new BorderLayout(15, 15));
         setBorder(BorderFactory.createEmptyBorder(25, 25, 25, 25));
 
-        // Thêm các thành phần
         add(createHeader(), BorderLayout.NORTH);
         add(createTablePanel(), BorderLayout.CENTER);
         add(createToolbar(), BorderLayout.SOUTH);
 
         loadDataFromDB();
-        // Table bắt đầu trống
     }
 
-    // ==================== HEADER ====================
     private JPanel createHeader() {
         JPanel header = new JPanel(new BorderLayout(20, 0));
         header.setBackground(bgColor);
         header.setBorder(BorderFactory.createEmptyBorder(0, 0, 15, 0));
 
-        // Tiêu đề bên trái
         JPanel titlePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         titlePanel.setBackground(bgColor);
 
@@ -81,7 +66,6 @@ public class QuanLiNhanSuPanel extends JPanel {
         titlePanel.add(icon);
         titlePanel.add(title);
 
-        // Panel tìm kiếm bên phải
         JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         searchPanel.setBackground(bgColor);
 
@@ -95,73 +79,9 @@ public class QuanLiNhanSuPanel extends JPanel {
                 BorderFactory.createLineBorder(new Color(209, 213, 219), 1, true),
                 BorderFactory.createEmptyBorder(8, 12, 8, 12)));
 
-        // Placeholder
-        txtSearch.setText("Nhập tên nhân viên...");
-        txtSearch.setForeground(Color.GRAY);
-        txtSearch.addFocusListener(new FocusAdapter() {
-            @Override
-            public void focusGained(FocusEvent e) {
-                if (txtSearch.getText().equals("Nhập tên nhân viên...")) {
-                    txtSearch.setText("");
-                    txtSearch.setForeground(Color.BLACK);
-                }
-            }
-
-            @Override
-            public void focusLost(FocusEvent e) {
-                if (txtSearch.getText().isEmpty()) {
-                    txtSearch.setText("Nhập tên nhân viên...");
-                    txtSearch.setForeground(Color.GRAY);
-                }
-            }
-        });
-
         JButton btnSearch = createStyledButton("Tìm", primaryColor, 80);
-        btnSearch.addActionListener(e -> {
-            String searchTerm = txtSearch.getText().trim();
-            if (searchTerm.isEmpty() || searchTerm.equals("Nhập tên nhân viên...")) {
-                refreshTable();
-                return;
-            }
-
-            NhanVienBUS bus = new NhanVienBUS();
-            bus.docDSNV();
-            tableModel.setRowCount(0);
-            try{
-                int maNV = Integer.parseInt(searchTerm);
-                NhanVienDTO nv = bus.timKiemTheoMa(maNV);
-                if (nv != null) {
-                    Object[] row = {
-                        nv.getMaNV(),
-                        nv.getTen(),
-                        nv.getHo(),
-                        nv.getChucVu(),
-                        nv.getNgaySinh(),
-                        nv.getLuongCoBan()
-                    };
-                    tableModel.addRow(row);
-                    return;
-                }
-            } catch (NumberFormatException ex) {
-                for (NhanVienDTO nv : bus.getDSNV()) {
-                    if (nv.getTen().equalsIgnoreCase(searchTerm)) {
-                        Object[] row = {
-                            nv.getMaNV(),
-                            nv.getTen(),
-                            nv.getHo(),
-                            nv.getChucVu(),
-                            nv.getNgaySinh(),
-                            nv.getLuongCoBan()
-                        };
-                        tableModel.addRow(row);
-                    }
-                }
-                // Không phải số, tiếp tục tìm theo tên
-
-            }
-        });
-        txtSearch.addActionListener(e -> btnSearch.doClick());
-
+        btnSearch.addActionListener(e -> searchNhanVien());
+        txtSearch.addActionListener(e -> searchNhanVien());
 
         searchPanel.add(lblSearch);
         searchPanel.add(txtSearch);
@@ -173,7 +93,6 @@ public class QuanLiNhanSuPanel extends JPanel {
         return header;
     }
 
-    // ==================== TABLE ====================
     private JPanel createTablePanel() {
         JPanel tablePanel = new JPanel(new BorderLayout());
         tablePanel.setBackground(cardColor);
@@ -181,10 +100,8 @@ public class QuanLiNhanSuPanel extends JPanel {
                 BorderFactory.createLineBorder(new Color(229, 231, 235), 1, true),
                 BorderFactory.createEmptyBorder(0, 0, 0, 0)));
 
-        // Định nghĩa cột
-        String[] columns = { "Mã NV", "Tên", "Họ", "Chức vụ", "Ngày Sinh", "Lương cơ bản" };
+        String[] columns = { "Mã NV", "Họ", "Tên", "Chức vụ", "Ngày sinh", "Lương cơ bản" };
 
-        // Tạo model (không cho edit trực tiếp)
         tableModel = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -192,7 +109,6 @@ public class QuanLiNhanSuPanel extends JPanel {
             }
         };
 
-        // Tạo table
         table = new JTable(tableModel);
         table.setRowHeight(45);
         table.setFont(normalFont);
@@ -202,7 +118,6 @@ public class QuanLiNhanSuPanel extends JPanel {
         table.setSelectionBackground(primaryLight);
         table.setSelectionForeground(Color.BLACK);
 
-        // Style header
         JTableHeader header = table.getTableHeader();
         header.setFont(boldFont);
         header.setBackground(primaryColor);
@@ -210,7 +125,6 @@ public class QuanLiNhanSuPanel extends JPanel {
         header.setPreferredSize(new Dimension(header.getWidth(), 50));
         header.setBorder(BorderFactory.createEmptyBorder());
 
-        // Căn giữa header
         DefaultTableCellRenderer headerRenderer = new DefaultTableCellRenderer();
         headerRenderer.setHorizontalAlignment(JLabel.CENTER);
         headerRenderer.setBackground(primaryColor);
@@ -220,60 +134,23 @@ public class QuanLiNhanSuPanel extends JPanel {
             table.getColumnModel().getColumn(i).setHeaderRenderer(headerRenderer);
         }
 
-        // Căn giữa các cột số
         DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
         centerRenderer.setHorizontalAlignment(JLabel.CENTER);
-        table.getColumnModel().getColumn(0).setCellRenderer(centerRenderer); // Mã
-
-        // Set độ rộng cột
-        table.getColumnModel().getColumn(0).setPreferredWidth(80); // Mã NV
-        table.getColumnModel().getColumn(1).setPreferredWidth(150); // Tên
-        table.getColumnModel().getColumn(2).setPreferredWidth(130); // Chức vụ
-        table.getColumnModel().getColumn(3).setPreferredWidth(130); // Số điện thoại
-        table.getColumnModel().getColumn(4).setPreferredWidth(150); // Email
-        table.getColumnModel().getColumn(5).setPreferredWidth(120); // Lương
-
-        // Alternating row colors
-        table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
-            @Override
-            public Component getTableCellRendererComponent(JTable table, Object value,
-                    boolean isSelected, boolean hasFocus, int row, int column) {
-                Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-
-                if (isSelected) {
-                    c.setBackground(primaryLight);
-                } else {
-                    c.setBackground(row % 2 == 0 ? Color.WHITE : new Color(249, 250, 251));
-                }
-
-                // Căn giữa cột 0
-                if (column == 0) {
-                    ((JLabel) c).setHorizontalAlignment(JLabel.CENTER);
-                } else {
-                    ((JLabel) c).setHorizontalAlignment(JLabel.LEFT);
-                }
-
-                setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
-                return c;
-            }
-        });
+        table.getColumnModel().getColumn(0).setCellRenderer(centerRenderer);
 
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
         scrollPane.getViewport().setBackground(Color.WHITE);
 
         tablePanel.add(scrollPane, BorderLayout.CENTER);
-
         return tablePanel;
     }
 
-    // ==================== TOOLBAR ====================
     private JPanel createToolbar() {
         JPanel toolbar = new JPanel(new BorderLayout());
         toolbar.setBackground(bgColor);
         toolbar.setBorder(BorderFactory.createEmptyBorder(15, 0, 0, 0));
 
-        // Panel nút bên trái
         JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
         leftPanel.setBackground(bgColor);
 
@@ -282,7 +159,6 @@ public class QuanLiNhanSuPanel extends JPanel {
         btnDelete = createStyledButton("✕ Xóa", new Color(239, 68, 68), 100);
         btnRefresh = createStyledButton("↻ Làm mới", new Color(107, 114, 128), 120);
 
-        // Thêm sự kiện
         btnAdd.addActionListener(e -> showAddDialog());
         btnEdit.addActionListener(e -> showEditDialog());
         btnDelete.addActionListener(e -> deleteSelected());
@@ -293,14 +169,13 @@ public class QuanLiNhanSuPanel extends JPanel {
         leftPanel.add(btnDelete);
         leftPanel.add(btnRefresh);
 
-        // Panel thông tin bên phải
         JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
         rightPanel.setBackground(bgColor);
 
-        JLabel lblTotal = new JLabel();
-        updateTotalLabel();
+        lblTotal = new JLabel();
         lblTotal.setFont(normalFont);
         lblTotal.setForeground(new Color(107, 114, 128));
+        updateTotalLabel();
 
         rightPanel.add(lblTotal);
 
@@ -310,7 +185,6 @@ public class QuanLiNhanSuPanel extends JPanel {
         return toolbar;
     }
 
-    // ==================== HELPER METHODS ====================
     private JButton createStyledButton(String text, Color bgColor, int width) {
         JButton btn = new JButton(text) {
             @Override
@@ -334,7 +208,6 @@ public class QuanLiNhanSuPanel extends JPanel {
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btn.setOpaque(false);
 
-        // Hover effect
         Color originalColor = bgColor;
         btn.addMouseListener(new MouseAdapter() {
             @Override
@@ -351,39 +224,68 @@ public class QuanLiNhanSuPanel extends JPanel {
         return btn;
     }
 
-    // ==================== ACTIONS ====================
+    private void updateTotalLabel() {
+        if (lblTotal != null) {
+            lblTotal.setText("Tổng: " + tableModel.getRowCount() + " nhân viên");
+        }
+    }
+
+    private void searchNhanVien() {
+        String key = txtSearch.getText().trim();
+        if (key.isEmpty()) {
+            loadDataFromDB();
+            return;
+        }
+
+        bus.docDSNV();
+        tableModel.setRowCount(0);
+        for (NhanVienDTO nv : bus.getDSNV()) {
+            String tenDayDu = (nv.getHo() + " " + nv.getTen()).toLowerCase();
+            boolean match = tenDayDu.contains(key.toLowerCase());
+            if (!match) {
+                try {
+                    int ma = Integer.parseInt(key);
+                    match = nv.getMaNV() == ma;
+                } catch (NumberFormatException ignored) {
+                }
+            }
+            if (match) {
+                tableModel.addRow(toRow(nv));
+            }
+        }
+        updateTotalLabel();
+    }
+
     private void showAddDialog() {
-        JDialog dialog = createNhanSuDialog("Thêm nhân viên mới", null);
+        JDialog dialog = createNhanSuDialog("Thêm nhân viên mới", null, -1);
         dialog.setVisible(true);
     }
 
     private void showEditDialog() {
         int selectedRow = table.getSelectedRow();
         if (selectedRow == -1) {
-            JOptionPane.showMessageDialog(this,
-                    "Vui lòng chọn nhân viên cần sửa!",
-                    "Thông báo",
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn nhân viên cần sửa!", "Thông báo",
                     JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        // Lấy dữ liệu dòng đang chọn
-        Object[] rowData = new Object[tableModel.getColumnCount()];
-        for (int i = 0; i < tableModel.getColumnCount(); i++) {
-            rowData[i] = tableModel.getValueAt(selectedRow, i);
+        NhanVienDTO nv = rowToNhanVien(selectedRow);
+        if (nv == null) {
+            JOptionPane.showMessageDialog(this, "Dữ liệu nhân viên không hợp lệ!", "Lỗi",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
         }
 
-        JDialog dialog = createNhanSuDialog("Chỉnh sửa nhân viên", rowData);
+        JDialog dialog = createNhanSuDialog("Chỉnh sửa nhân viên", nv, selectedRow);
         dialog.setVisible(true);
     }
 
-    private JDialog createNhanSuDialog(String title, Object[] data) {
+    private JDialog createNhanSuDialog(String title, NhanVienDTO data, int selectedRow) {
         JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), title, true);
-        dialog.setSize(500, 450);
+        dialog.setSize(520, 420);
         dialog.setLocationRelativeTo(this);
         dialog.setLayout(new BorderLayout());
 
-        // Panel form
         JPanel formPanel = new JPanel(new GridBagLayout());
         formPanel.setBackground(Color.WHITE);
         formPanel.setBorder(BorderFactory.createEmptyBorder(25, 30, 25, 30));
@@ -392,39 +294,41 @@ public class QuanLiNhanSuPanel extends JPanel {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(8, 5, 8, 5);
 
-        String[] labels = { "Mã NV:", "Tên nhân viên:", "Chức vụ:", "Số điện thoại:", "Email:", "Lương:" };
-        JTextField[] fields = new JTextField[labels.length];
+        JTextField txtHo = new JTextField();
+        JTextField txtTen = new JTextField();
+        JTextField txtNgaySinh = new JTextField();
+        JTextField txtChucVu = new JTextField();
+        JTextField txtLuong = new JTextField();
+
+        JTextField[] fields = { txtHo, txtTen, txtNgaySinh, txtChucVu, txtLuong };
+        String[] labels = { "Họ:", "Tên:", "Ngày sinh (yyyy-MM-dd):", "Mã chức vụ:", "Lương cơ bản:" };
 
         for (int i = 0; i < labels.length; i++) {
             gbc.gridx = 0;
             gbc.gridy = i;
-            gbc.weightx = 0.3;
-
+            gbc.weightx = 0.4;
             JLabel lbl = new JLabel(labels[i]);
             lbl.setFont(normalFont);
             formPanel.add(lbl, gbc);
 
             gbc.gridx = 1;
-            gbc.weightx = 0.7;
-
-            fields[i] = new JTextField();
+            gbc.weightx = 0.6;
             fields[i].setPreferredSize(new Dimension(250, 35));
             fields[i].setFont(normalFont);
             fields[i].setBorder(BorderFactory.createCompoundBorder(
                     BorderFactory.createLineBorder(new Color(209, 213, 219)),
                     BorderFactory.createEmptyBorder(5, 10, 5, 10)));
-
-            // Điền dữ liệu nếu đang sửa
-            if (data != null && i < data.length) {
-                fields[i].setText(String.valueOf(data[i]));
-                if (i == 0)
-                    fields[i].setEditable(false); // Không sửa mã NV
-            }
-
             formPanel.add(fields[i], gbc);
         }
 
-        // Panel buttons
+        if (data != null) {
+            txtHo.setText(data.getHo());
+            txtTen.setText(data.getTen());
+            txtNgaySinh.setText(data.getNgaySinh() != null ? dateFormat.format(data.getNgaySinh()) : "");
+            txtChucVu.setText(String.valueOf(data.getChucVu()));
+            txtLuong.setText(String.valueOf(data.getLuongCoBan()));
+        }
+
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 15));
         buttonPanel.setBackground(new Color(249, 250, 251));
 
@@ -432,33 +336,41 @@ public class QuanLiNhanSuPanel extends JPanel {
         JButton btnCancel = createStyledButton("Hủy", new Color(107, 114, 128), 100);
 
         btnSave.addActionListener(e -> {
-            // Validate dữ liệu
-            if (fields[0].getText().trim().isEmpty() ||
-                fields[1].getText().trim().isEmpty()) {
-                JOptionPane.showMessageDialog(dialog, "Vui lòng điền đầy đủ thông tin!", "Lỗi", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
+            try {
+                String ho = txtHo.getText().trim();
+                String ten = txtTen.getText().trim();
+                if (ho.isEmpty() || ten.isEmpty()) {
+                    JOptionPane.showMessageDialog(dialog, "Họ và tên không được để trống.", "Lỗi",
+                            JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
 
-            if (data == null) {
-                // Thêm mới
-                Object[] newRow = new Object[fields.length];
-                for (int i = 0; i < fields.length; i++) {
-                    newRow[i] = fields[i].getText();
+                Date ngaySinh = dateFormat.parse(txtNgaySinh.getText().trim());
+                int chucVu = Integer.parseInt(txtChucVu.getText().trim());
+                double luong = Double.parseDouble(txtLuong.getText().trim());
+
+                NhanVienDTO nv = new NhanVienDTO();
+                nv.setHo(ho);
+                nv.setTen(ten);
+                nv.setNgaySinh(ngaySinh);
+                nv.setChucVu(chucVu);
+                nv.setLuongCoBan(luong);
+
+                if (data == null) {
+                    bus.them(nv);
+                } else {
+                    nv.setMaNV((int) tableModel.getValueAt(selectedRow, 0));
+                    bus.sua(nv);
                 }
-                tableModel.addRow(newRow);
-                updateTotalLabel();
-                JOptionPane.showMessageDialog(dialog, "Thêm nhân viên thành công!", "Thông báo",
+
+                loadDataFromDB();
+                dialog.dispose();
+                JOptionPane.showMessageDialog(this, "Lưu nhân viên thành công!", "Thông báo",
                         JOptionPane.INFORMATION_MESSAGE);
-            } else {
-                // Cập nhật
-                int selectedRow = table.getSelectedRow();
-                for (int i = 0; i < fields.length; i++) {
-                    tableModel.setValueAt(fields[i].getText(), selectedRow, i);
-                }
-                JOptionPane.showMessageDialog(dialog, "Cập nhật thành công!", "Thông báo",
-                        JOptionPane.INFORMATION_MESSAGE);
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(dialog, "Dữ liệu không hợp lệ: " + ex.getMessage(), "Lỗi",
+                        JOptionPane.ERROR_MESSAGE);
             }
-            dialog.dispose();
         });
 
         btnCancel.addActionListener(e -> dialog.dispose());
@@ -468,21 +380,19 @@ public class QuanLiNhanSuPanel extends JPanel {
 
         dialog.add(formPanel, BorderLayout.CENTER);
         dialog.add(buttonPanel, BorderLayout.SOUTH);
-
         return dialog;
     }
 
     private void deleteSelected() {
         int selectedRow = table.getSelectedRow();
         if (selectedRow == -1) {
-            JOptionPane.showMessageDialog(this,
-                    "Vui lòng chọn nhân viên cần xóa!",
-                    "Thông báo",
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn nhân viên cần xóa!", "Thông báo",
                     JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        String tenNhanVien = tableModel.getValueAt(selectedRow, 1).toString();
+        int maNV = (int) tableModel.getValueAt(selectedRow, 0);
+        String tenNhanVien = tableModel.getValueAt(selectedRow, 2).toString();
         int confirm = JOptionPane.showConfirmDialog(this,
                 "Bạn có chắc muốn xóa \"" + tenNhanVien + "\"?",
                 "Xác nhận xóa",
@@ -490,36 +400,58 @@ public class QuanLiNhanSuPanel extends JPanel {
                 JOptionPane.QUESTION_MESSAGE);
 
         if (confirm == JOptionPane.YES_OPTION) {
-            tableModel.removeRow(selectedRow);
-            updateTotalLabel();
+            bus.xoa(maNV);
+            loadDataFromDB();
             JOptionPane.showMessageDialog(this, "Xóa thành công!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
         }
     }
 
     private void refreshTable() {
-        tableModel.setRowCount(0);
-        JOptionPane.showMessageDialog(this, "Đã làm mới dữ liệu!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
-
         loadDataFromDB();
+        JOptionPane.showMessageDialog(this, "Đã làm mới dữ liệu!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
     }
 
     private void loadDataFromDB() {
-        NhanVienBUS bus = new NhanVienBUS();
         bus.docDSNV();
-
         tableModel.setRowCount(0);
 
-        for(NhanVienDTO nv : bus.getDSNV()) {
-            Object[] row = {
+        ArrayList<NhanVienDTO> data = bus.getDSNV();
+        if (data != null) {
+            for (NhanVienDTO nv : data) {
+                tableModel.addRow(toRow(nv));
+            }
+        }
+        updateTotalLabel();
+    }
+
+    private Object[] toRow(NhanVienDTO nv) {
+        return new Object[] {
                 nv.getMaNV(),
-                nv.getTen(),
                 nv.getHo(),
+                nv.getTen(),
                 nv.getChucVu(),
                 nv.getNgaySinh(),
                 nv.getLuongCoBan()
-            };
-            tableModel.addRow(row);
+        };
+    }
+
+    private NhanVienDTO rowToNhanVien(int row) {
+        try {
+            NhanVienDTO nv = new NhanVienDTO();
+            nv.setMaNV((int) tableModel.getValueAt(row, 0));
+            nv.setHo(String.valueOf(tableModel.getValueAt(row, 1)));
+            nv.setTen(String.valueOf(tableModel.getValueAt(row, 2)));
+            Object ngaySinhCell = tableModel.getValueAt(row, 4);
+            if (ngaySinhCell instanceof Date) {
+                nv.setNgaySinh((Date) ngaySinhCell);
+            } else {
+                nv.setNgaySinh(dateFormat.parse(String.valueOf(ngaySinhCell)));
+            }
+            nv.setChucVu(Integer.parseInt(String.valueOf(tableModel.getValueAt(row, 3))));
+            nv.setLuongCoBan(Double.parseDouble(String.valueOf(tableModel.getValueAt(row, 5))));
+            return nv;
+        } catch (Exception e) {
+            return null;
         }
     }
-    updateTotalLabel();
 }

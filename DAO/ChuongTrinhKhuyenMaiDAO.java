@@ -16,10 +16,8 @@ import java.util.Date;
 // Truy cập bảng chương trình khuyến mãi (JOIN banh để lấy tên bánh mua/tặng)
 public class ChuongTrinhKhuyenMaiDAO {
 
-    private Connection conn;
-
-    public ChuongTrinhKhuyenMaiDAO() {
-        conn = ConnectDatabase.getConnection();
+    private Connection getConn() {
+        return ConnectDatabase.getConnection();
     }
 
     private ChuongTrinhKhuyenMaiDTO mapRow(ResultSet rs) throws Exception {
@@ -58,6 +56,7 @@ public class ChuongTrinhKhuyenMaiDAO {
 
     public ArrayList<ChuongTrinhKhuyenMaiDTO> getAll() {
         ArrayList<ChuongTrinhKhuyenMaiDTO> list = new ArrayList<>();
+        Connection conn = getConn();
         if (conn == null) {
             return list;
         }
@@ -95,6 +94,7 @@ public class ChuongTrinhKhuyenMaiDAO {
      */
     private ArrayList<ChuongTrinhKhuyenMaiDTO> getAllBanCu5Cot() {
         ArrayList<ChuongTrinhKhuyenMaiDTO> list = new ArrayList<>();
+        Connection conn = getConn();
         if (conn == null) {
             return list;
         }
@@ -129,6 +129,7 @@ public class ChuongTrinhKhuyenMaiDAO {
     }
 
     public int insert(ChuongTrinhKhuyenMaiDTO dto) {
+        Connection conn = getConn();
         if (conn == null) {
             return -1;
         }
@@ -163,6 +164,7 @@ public class ChuongTrinhKhuyenMaiDAO {
     }
 
     public boolean update(ChuongTrinhKhuyenMaiDTO dto) {
+        Connection conn = getConn();
         if (conn == null) {
             return false;
         }
@@ -190,6 +192,7 @@ public class ChuongTrinhKhuyenMaiDAO {
     }
 
     public boolean delete(int maKM) {
+        Connection conn = getConn();
         if (conn == null) {
             return false;
         }

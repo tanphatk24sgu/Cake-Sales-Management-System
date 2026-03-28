@@ -1,0 +1,300 @@
+USE CAKE_MANAGEMENT;
+
+CREATE TABLE DONVITINH(
+MaDVT INT AUTO_INCREMENT PRIMARY KEY,
+Ten VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE HANGSANXUAT(
+MaHang INT AUTO_INCREMENT PRIMARY KEY,
+TenHang VARCHAR(255) NOT NULL,
+DiaChi VARCHAR(255)
+);
+
+CREATE TABLE NGUYENLIEU(
+MaNL INT AUTO_INCREMENT PRIMARY KEY,
+Ten VARCHAR(255) NOT NULL,
+SoLuong INT,
+DonGia DECIMAL(15,2),
+MaDVT INT,
+FOREIGN KEY (MaDVT) REFERENCES DONVITINH(MaDVT)
+);
+
+CREATE TABLE LOAIBANH(
+MaLoai INT AUTO_INCREMENT PRIMARY KEY,
+TenLoai VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE CHUCVU(
+MaChucVu INT AUTO_INCREMENT PRIMARY KEY,
+TenChucVu VARCHAR(255)
+);
+
+CREATE TABLE NHANVIEN(
+MaNV INT AUTO_INCREMENT PRIMARY KEY,
+Ho VARCHAR(100) NOT NULL,
+Ten VARCHAR(100) NOT NULL,
+NgaySinh DATE,
+LuongCoBan DECIMAL(15,2),
+ChucVu INT,
+FOREIGN KEY (ChucVu) REFERENCES CHUCVU(MaChucVu)
+);
+
+CREATE TABLE NHACUNGCAP(
+MaNCC INT AUTO_INCREMENT PRIMARY KEY,
+TenNCC VARCHAR(255) NOT NULL,
+MaSoThue VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE KHACHHANG(
+MaKH INT AUTO_INCREMENT PRIMARY KEY,
+Ho VARCHAR(255) NOT NULL,
+Ten VARCHAR(255) NOT NULL,
+DiaChi VARCHAR(255),
+SDT VARCHAR(15)
+);
+
+CREATE TABLE HOADON(
+MaHD INT AUTO_INCREMENT PRIMARY KEY,
+NgayLapHD DATETIME NOT NULL,
+MaNV INT,
+MaKH INT,
+ThanhTien DECIMAL(15,2),
+FOREIGN KEY (MaNV) REFERENCES NHANVIEN(MaNV),
+FOREIGN KEY (MaKH) REFERENCES KHACHHANG(MaKH)
+);
+
+CREATE TABLE CHUONGTRINHKHUYENMAI(
+MaKM INT AUTO_INCREMENT PRIMARY KEY,
+TenCTKM VARCHAR(255),
+NgayBatDau DATETIME DEFAULT NOW(),
+NgayKetThuc DATETIME DEFAULT NOW(),
+GhiChu VARCHAR(255),
+LoaiKhuyenMai VARCHAR(64) DEFAULT 'Giảm phần trăm',
+PhanTramGiam INT DEFAULT 0,
+DieuKienToiThieu DECIMAL(15,2) DEFAULT 0,
+SoLuongMua INT DEFAULT 0,
+SoLuongTang INT DEFAULT 0,
+MaBanhMua INT NULL,
+MaBanhTang INT NULL
+);
+
+CREATE TABLE PHIEUNHAPHANG(
+MaPhieuNhap INT AUTO_INCREMENT PRIMARY KEY,
+Ngay DATETIME DEFAULT NOW(),
+MaNV INT,
+MaNCC INT,
+FOREIGN KEY (MaNV) REFERENCES NHANVIEN(MaNV),
+FOREIGN KEY (MaNCC) REFERENCES NHACUNGCAP(MaNCC)
+);
+
+CREATE TABLE BANH(
+MaBanh INT AUTO_INCREMENT PRIMARY KEY,
+TenBanh VARCHAR(255) NOT NULL,
+SoLuong INT CHECK (SoLuong >= 0),
+MaDVT INT,
+MaLoai INT,
+MaHang INT,
+FOREIGN KEY (MaDVT) REFERENCES DONVITINH(MaDVT),
+FOREIGN KEY (MaLoai) REFERENCES LOAIBANH(MaLoai),
+FOREIGN KEY (MaHang) REFERENCES HANGSANXUAT(MaHang)
+);
+
+CREATE TABLE CT_PHIEUNHAPHANG(
+MaPhieuNhap INT,
+MaBanh INT,
+MaNVL INT,
+SoLuong INT NOT NULL CHECK (SoLuong >= 0),
+DonGia DECIMAL(15,2) NOT NULL CHECK (DonGia >= 0),
+ThanhTien DECIMAL(15,2) GENERATED ALWAYS AS (SoLuong * DonGia) STORED,
+TinhTrang VARCHAR(255),
+FOREIGN KEY (MaPhieuNhap) REFERENCES PHIEUNHAPHANG(MaPhieuNhap),
+FOREIGN KEY (MaBanh) REFERENCES BANH(MaBanh),
+FOREIGN KEY (MaNVL) REFERENCES NGUYENLIEU(MaNL)
+);
+
+CREATE TABLE CHITIETHOADON(
+MaHD INT,
+MaBanh INT,
+SoLuong INT NOT NULL CHECK (SoLuong >= 0),
+DonGia DECIMAL(15,2) NOT NULL CHECK (DonGia >= 0),
+ThanhTien DECIMAL(15,2) GENERATED ALWAYS AS (SoLuong * DonGia) STORED,
+Diem INT,
+FOREIGN KEY (MaHD) REFERENCES HOADON(MaHD),
+FOREIGN KEY (MaBanh) REFERENCES BANH(MaBanh)
+);
+
+CREATE TABLE CT_CHUONGTRINHKHUYENMAI(
+MaKM INT,
+MaBanh INT,
+PhanTramGiam INT CHECK (PhanTramGiam > 0 AND PhanTramGiam <= 100),
+FOREIGN KEY (MaKM) REFERENCES CHUONGTRINHKHUYENMAI(MaKM),
+FOREIGN KEY (MaBanh) REFERENCES BANH(MaBanh)
+);
+
+CREATE TABLE CONGTHUC(
+MaBanh INT,
+MaDVT INT,
+CachLam VARCHAR(255),
+FOREIGN KEY (MaBanh) REFERENCES BANH(MaBanh),
+FOREIGN KEY (MaDVT) REFERENCES DONVITINH(MaDVT)
+);
+
+CREATE TABLE TICHDIEM(
+MaKH INT,
+TICHDIEM INT NOT NULL,
+FOREIGN KEY (MaKH) REFERENCES KHACHHANG(MaKH)
+);
+
+INSERT INTO DONVITINH(Ten) VALUES
+('Cái'), ('Hộp'), ('Kg'), ('Gram'), ('Lít'),
+('Chai'), ('Gói'), ('Thùng'), ('Miếng'), ('Set');
+
+INSERT INTO HANGSANXUAT(TenHang, DiaChi) VALUES
+('ABC Bakery', 'HCM'),
+('Sweet Home', 'Hà Nội'),
+('Cake House', 'Đà Nẵng'),
+('Paris Bakery', 'Pháp'),
+('Tokyo Cake', 'Nhật'),
+('Korea Sweet', 'Hàn Quốc'),
+('USA Bakery', 'Mỹ'),
+('German Cake', 'Đức'),
+('Italy Sweet', 'Ý'),
+('Local Brand', 'Việt Nam');
+
+INSERT INTO LOAIBANH(TenLoai) VALUES
+('Bánh kem'), ('Bánh mì'), ('Bánh ngọt'), ('Bánh sinh nhật'),
+('Bánh quy'), ('Bánh lạnh'), ('Bánh chocolate'),
+('Bánh trái cây'), ('Bánh truyền thống'), ('Bánh cao cấp');
+
+INSERT INTO CHUCVU(TenChucVu) VALUES
+('Quản lý'), ('Nhân viên bán hàng'), ('Thu ngân'),
+('Bếp trưởng'), ('Phụ bếp'),
+('Nhân viên kho'), ('Giao hàng'),
+('Marketing'), ('Kế toán'), ('Bảo vệ');
+
+INSERT INTO NHANVIEN(Ho, Ten, NgaySinh, LuongCoBan, ChucVu) VALUES
+('Nguyễn', 'An', '2000-01-01', 8000000, 1),
+('Trần', 'Bình', '1999-05-10', 7000000, 2),
+('Lê', 'Cường', '2001-03-12', 6500000, 3),
+('Phạm', 'Dũng', '1998-07-20', 9000000, 4),
+('Hoàng', 'Em', '2002-11-11', 6000000, 5),
+('Võ', 'Phong', '2000-06-15', 7000000, 6),
+('Đặng', 'Hải', '1997-09-09', 8500000, 7),
+('Bùi', 'Lan', '2001-02-02', 7500000, 8),
+('Đỗ', 'Mai', '1999-08-08', 7800000, 9),
+('Ngô', 'Nam', '2003-04-04', 5000000, 10);
+
+INSERT INTO KHACHHANG(Ho, Ten, DiaChi, SDT) VALUES
+('Nguyễn', 'A', 'HCM', '0900000001'),
+('Trần', 'B', 'HCM', '0900000002'),
+('Lê', 'C', 'HCM', '0900000003'),
+('Phạm', 'D', 'HCM', '0900000004'),
+('Hoàng', 'E', 'HCM', '0900000005'),
+('Võ', 'F', 'HCM', '0900000006'),
+('Đặng', 'G', 'HCM', '0900000007'),
+('Bùi', 'H', 'HCM', '0900000008'),
+('Đỗ', 'I', 'HCM', '0900000009'),
+('Ngô', 'K', 'HCM', '0900000010');
+
+INSERT INTO NHACUNGCAP(TenNCC, MaSoThue) VALUES
+('NCC A', 'MST001'),
+('NCC B', 'MST002'),
+('NCC C', 'MST003'),
+('NCC D', 'MST004'),
+('NCC E', 'MST005'),
+('NCC F', 'MST006'),
+('NCC G', 'MST007'),
+('NCC H', 'MST008'),
+('NCC I', 'MST009'),
+('NCC K', 'MST010');
+
+INSERT INTO NGUYENLIEU(Ten, SoLuong, DonGia, MaDVT) VALUES
+('Bột mì', 100, 20000, 3),
+('Đường', 80, 15000, 3),
+('Sữa', 50, 30000, 5),
+('Trứng', 200, 3000, 1),
+('Bơ', 40, 50000, 3),
+('Chocolate', 30, 70000, 3),
+('Kem tươi', 20, 60000, 5),
+('Vanilla', 10, 80000, 7),
+('Muối', 60, 5000, 3),
+('Phô mai', 25, 90000, 3);
+
+INSERT INTO BANH(TenBanh, SoLuong, MaDVT, MaLoai, MaHang) VALUES
+('Bánh kem dâu', 50, 1, 1, 1),
+('Bánh mì bơ', 100, 1, 2, 2),
+('Bánh chocolate', 40, 1, 7, 3),
+('Bánh sinh nhật', 30, 1, 4, 4),
+('Bánh quy', 70, 1, 5, 5),
+('Bánh lạnh', 20, 1, 6, 6),
+('Bánh trái cây', 25, 1, 8, 7),
+('Bánh truyền thống', 60, 1, 9, 8),
+('Bánh cao cấp', 15, 1, 10, 9),
+('Bánh ngọt mini', 90, 1, 3, 10);
+
+INSERT INTO HOADON (NgayLapHD, MaNV, MaKH, ThanhTien) VALUES
+('2026-01-01 08:30:00', 1, 1, 150000.00),
+('2026-01-02 10:15:00', 2, 3, 320000.50),
+('2026-01-03 14:45:00', 1, 2, 210000.00),
+('2026-01-04 09:20:00', 3, 4, 500000.75),
+('2026-01-05 16:10:00', 2, 5, 125000.00),
+('2026-01-06 11:00:00', 4, 2, 780000.25),
+('2026-01-07 13:35:00', 1, 6, 640000.00),
+('2026-01-08 17:50:00', 3, 1, 290000.00),
+('2026-01-09 08:05:00', 2, 7, 410000.90),
+('2026-01-10 15:25:00', 4, 3, 555000.00);
+
+INSERT INTO CHITIETHOADON(MaHD, MaBanh, SoLuong, DonGia, Diem) VALUES
+(1,1,2,100000,10),(1,2,1,50000,5),(1,3,1,120000,8),
+(2,2,3,50000,6),(2,4,1,200000,10),(2,5,2,70000,7),
+(3,1,1,100000,5),(3,6,2,150000,10),(3,7,1,130000,6),
+(4,3,2,120000,9),(4,8,1,110000,4),(4,9,1,300000,12),
+(5,5,2,70000,6),(5,10,3,40000,5),(5,1,1,100000,7),
+(6,2,2,50000,5),(6,3,1,120000,6),(6,4,1,200000,8),
+(7,7,2,130000,10),(7,8,1,110000,5),(7,9,1,300000,12),
+(8,10,4,40000,6),(8,1,1,100000,5),(8,2,2,50000,5),
+(9,3,2,120000,7),(9,6,1,150000,6),(9,5,1,70000,4),
+(10,4,1,200000,10),(10,7,1,130000,5),(10,8,1,110000,5);
+
+INSERT INTO PHIEUNHAPHANG(MaNV, MaNCC) VALUES
+(1,1),(2,2),(3,3),(4,4),(5,5),
+(6,6),(7,7),(8,8),(9,9),(10,10);
+
+INSERT INTO CT_PHIEUNHAPHANG(MaPhieuNhap, MaBanh, MaNVL, SoLuong, DonGia, TinhTrang) VALUES
+(1,1,1,10,20000,'OK'),(1,2,2,5,15000,'OK'),(1,3,3,7,30000,'OK'),
+(2,2,4,20,3000,'OK'),(2,3,5,10,50000,'OK'),(2,4,6,8,70000,'OK'),
+(3,1,7,6,60000,'OK'),(3,5,8,3,80000,'OK'),(3,6,9,9,5000,'OK'),
+(4,7,10,5,90000,'OK'),(4,8,1,6,20000,'OK'),(4,9,2,7,15000,'OK'),
+(5,3,3,10,30000,'OK'),(5,4,4,20,3000,'OK'),(5,5,5,8,50000,'OK'),
+(6,6,6,7,70000,'OK'),(6,7,7,5,60000,'OK'),(6,8,8,3,80000,'OK'),
+(7,9,9,9,5000,'OK'),(7,10,10,4,90000,'OK'),(7,1,1,6,20000,'OK'),
+(8,2,2,7,15000,'OK'),(8,3,3,8,30000,'OK'),(8,4,4,9,3000,'OK'),
+(9,5,5,6,50000,'OK'),(9,6,6,7,70000,'OK'),(9,7,7,8,60000,'OK'),
+(10,8,8,5,80000,'OK'),(10,9,9,9,5000,'OK'),(10,10,10,6,90000,'OK');
+
+INSERT INTO TICHDIEM VALUES
+(1,100),(2,200),(3,150),(4,300),(5,120),
+(6,80),(7,220),(8,90),(9,160),(10,50);
+
+INSERT INTO CHUONGTRINHKHUYENMAI(TenCTKM, PhanTramGiam) VALUES
+('Sale 10%',10),('Sale 20%',20),('Sale 30%',30),
+('Sale 5%',5),('Sale 15%',15),
+('Combo 1',0),('Combo 2',0),
+('Tặng bánh',0),('Flash sale',25),('Weekend',12);
+
+INSERT INTO CT_CHUONGTRINHKHUYENMAI VALUES
+(1,1,10),(2,2,20),(3,3,30),(4,4,5),(5,5,15),
+(6,6,10),(7,7,20),(8,8,25),(9,9,30),(10,10,12);
+
+INSERT INTO CONGTHUC VALUES
+(1,1,'Trộn bột và nướng'),
+(2,1,'Nhào bột'),
+(3,1,'Nướng chocolate'),
+(4,1,'Trang trí'),
+(5,1,'Nướng giòn'),
+(6,1,'Làm lạnh'),
+(7,1,'Thêm trái cây'),
+(8,1,'Truyền thống'),
+(9,1,'Cao cấp'),
+(10,1,'Mini');

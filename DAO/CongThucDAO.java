@@ -19,7 +19,6 @@ public class CongThucDAO {
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 CongThucDTO ct = new CongThucDTO();
-                ct.setMaCongThuc(rs.getInt("MaCongThuc"));
                 ct.setMaBanh(rs.getInt("MaBanh"));
                 ct.setMaDVT(rs.getInt("MaDVT"));
                 ct.setCachLam(rs.getString("CachLam"));
@@ -51,6 +50,18 @@ public class CongThucDAO {
             PreparedStatement ps = conn.prepareStatement(sql);
             ps.setString(1, ct.getCachLam());
             ps.setInt(2, ct.getMaBanh());
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean delete(int maBanh) {
+        try {
+            String sql = "DELETE FROM congthuc WHERE MaBanh = ?";
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setInt(1, maBanh);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();

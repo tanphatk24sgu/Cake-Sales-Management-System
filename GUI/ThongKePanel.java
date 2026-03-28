@@ -1,37 +1,55 @@
 import javax.swing.*;
-import javax.swing.table.*;
-import java.awt.*;
-import java.awt.event.*;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
+
 import com.toedter.calendar.JDateChooser;
 
-import BUS.HoaDonBUS;
+import BUS.ThongKeBUS;
+
+import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.sql.Date;
+import java.util.Calendar;
+
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 public class ThongKePanel extends JPanel {
-    
-    // Khai báo components
-    private JTable table;
-    private DefaultTableModel tblModel;
 
-    private JComboBox<String> cboLoaiThongKe;
-    private JTextField txtThang, txtNam, txtQuy;
-    private JDateChooser dcTuNgay, dcDenNgay;
+    private final ThongKeBUS thongKeBUS = new ThongKeBUS();
 
-    private JButton btnThongKe, btnRefresh;
+    private JTable tblDoanhThu;
+    private JTable tblThuNhap;
+    private JTable tblNhap;
+    private JTable tblBan;
+    private JTabbedPane tabbedPane;
 
-    private HoaDonBUS hd = new HoaDonBUS();
+    private DefaultTableModel modelDoanhThu;
+    private DefaultTableModel modelThuNhap;
+    private DefaultTableModel modelNhap;
+    private DefaultTableModel modelBan;
 
-    // Color
-    private Color primaryColor = new Color(236, 72, 153);
-    private Color primaryLight = new Color(251, 207, 232);
-    private Color btnBlue = new Color(59, 130, 246);
-    private Color btnGreen = new Color(34, 197, 94);
-    private Color bgColor = new Color(249, 250, 251);
-    // private Color cardColor = Color.WHITE;
+    private JDateChooser dcTuNgay;
+    private JDateChooser dcDenNgay;
+    private JButton btnThongKe;
+    private JButton btnRefresh;
+    private JButton btnExportTabExcel;
 
-    // Font
-    private Font titleFont = new Font("Segoe UI", Font.BOLD, 24);
-    private Font normalFont = new Font("Segoe UI", Font.PLAIN, 14);
-    private Font boldFont = new Font("Segoe UI", Font.BOLD, 14);
+    private final Color primaryColor = new Color(236, 72, 153);
+    private final Color primaryLight = new Color(251, 207, 232);
+    private final Color btnBlue = new Color(59, 130, 246);
+    private final Color btnGreen = new Color(34, 197, 94);
+    private final Color bgColor = new Color(249, 250, 251);
+
+    private final Font titleFont = new Font("Segoe UI", Font.BOLD, 24);
+    private final Font normalFont = new Font("Segoe UI", Font.PLAIN, 14);
+    private final Font boldFont = new Font("Segoe UI", Font.BOLD, 14);
 
     public ThongKePanel() {
         setLayout(new BorderLayout(15, 15));
@@ -39,14 +57,17 @@ public class ThongKePanel extends JPanel {
         setBorder(BorderFactory.createEmptyBorder(25, 25, 25, 25));
 
         add(createHeader(), BorderLayout.NORTH);
-        add(createTable(), BorderLayout.CENTER);
+        add(createCenterContent(), BorderLayout.CENTER);
         add(createControlPanel(), BorderLayout.SOUTH);
+
+        initDefaultDates();
+        thongKeTatCa();
     }
-    
+
     private JPanel createHeader() {
         JPanel titlePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         titlePanel.setBackground(bgColor);
-        
+
         JLabel icon = new JLabel();
         try {
             ImageIcon chartIcon = new ImageIcon("img/icon/bar-chart.png");
@@ -55,170 +76,267 @@ public class ThongKePanel extends JPanel {
         } catch (Exception e) {
             icon.setText("📊");
         }
-        
+
         JLabel title = new JLabel("THỐNG KÊ");
         title.setFont(titleFont);
         title.setForeground(primaryColor);
-        
+
         titlePanel.add(icon);
         titlePanel.add(title);
         return titlePanel;
     }
 
-    private JPanel createTable() {
-        JPanel tablePanel = new JPanel(new BorderLayout());
+    private JComponent createCenterContent() {
+        tabbedPane = new JTabbedPane();
+        tabbedPane.setFont(boldFont);
+        tabbedPane.setBackground(Color.WHITE);
 
-        String[] cols = {"Loại thống kê", "Giá trị", "Doanh thu"};
-        tblModel = new DefaultTableModel(cols, 0);
+        modelDoanhThu = new DefaultTableModel(new String[] { "Ngày", "Số hóa đơn", "Doanh thu" }, 0);
+        tblDoanhThu = createTable(modelDoanhThu);
+        tabbedPane.addTab("Doanh thu", createTableContainer(tblDoanhThu, "Bảng 1 - Thống kê doanh thu"));
 
-        table = new JTable(tblModel);
-        table.setRowHeight(40);
+        modelThuNhap = new DefaultTableModel(new String[] { "Ngày", "Doanh thu", "Chi phí nhập", "Thu nhập" }, 0);
+        tblThuNhap = createTable(modelThuNhap);
+        tabbedPane.addTab("Thu nhập", createTableContainer(tblThuNhap, "Bảng 2 - Thống kê thu nhập"));
+
+        modelNhap = new DefaultTableModel(new String[] { "Mã bánh", "Tên bánh", "SL nhập", "Giá trị nhập" }, 0);
+        tblNhap = createTable(modelNhap);
+        tabbedPane.addTab("Số lượng nhập", createTableContainer(tblNhap, "Bảng 3 - Thống kê số lượng nhập hàng"));
+
+        modelBan = new DefaultTableModel(new String[] { "Mã bánh", "Tên bánh", "SL bán", "Doanh thu bán" }, 0);
+        tblBan = createTable(modelBan);
+        tabbedPane.addTab("Số lượng bán", createTableContainer(tblBan, "Bảng 4 - Thống kê số lượng bán ra"));
+
+        return tabbedPane;
+    }
+
+    private JPanel createTableContainer(JTable table, String subtitle) {
+        JPanel panel = new JPanel(new BorderLayout(0, 8));
+        panel.setBackground(bgColor);
+
+        JLabel lblSub = new JLabel(subtitle);
+        lblSub.setFont(boldFont);
+        lblSub.setForeground(new Color(107, 114, 128));
+
+        JScrollPane sp = new JScrollPane(table);
+        sp.setBorder(BorderFactory.createLineBorder(new Color(229, 231, 235)));
+
+        panel.add(lblSub, BorderLayout.NORTH);
+        panel.add(sp, BorderLayout.CENTER);
+        return panel;
+    }
+
+    private JTable createTable(DefaultTableModel model) {
+        JTable table = new JTable(model) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+
+        table.setRowHeight(38);
         table.setFont(normalFont);
         table.setGridColor(new Color(243, 244, 246));
         table.setSelectionBackground(primaryLight);
         styleTableHeader(table);
 
-        JTableHeader header = table.getTableHeader();
-        header.setFont(boldFont);
-        header.setBackground(primaryColor);
-        header.setForeground(Color.WHITE);
-
-        tablePanel.add(new JScrollPane(table), BorderLayout.CENTER);
-        return tablePanel;
+        return table;
     }
 
     private JPanel createControlPanel() {
-        JPanel controlPanel = new JPanel(new GridLayout(3, 1, 10, 10));
+        JPanel controlPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
         controlPanel.setBackground(bgColor);
-
-        JPanel row1 = new JPanel((new FlowLayout(FlowLayout.LEFT)));
-        row1.setBackground(bgColor);
-
-        cboLoaiThongKe = new JComboBox<>(new String[]{
-            "Theo tháng",
-            "Theo quý",
-            "Theo năm",
-            "Khoảng ngày"
-        });
-
-        row1.add(new JLabel("Chọn loại:"));
-        row1.add(cboLoaiThongKe);
-
-        // Input
-        JPanel row2 = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        row2.setBackground(bgColor);
-
-        txtThang = new JTextField(5);
-        txtThang.setPreferredSize(new Dimension(150, 32));
-        txtNam = new JTextField(5);
-        txtNam.setPreferredSize(new Dimension(150, 32));
-        txtQuy = new JTextField(5);
-        txtQuy.setPreferredSize(new Dimension(150, 32));
 
         dcTuNgay = new JDateChooser();
         dcDenNgay = new JDateChooser();
-
-        dcTuNgay.setPreferredSize(new Dimension(120, 30));
-        dcDenNgay.setPreferredSize(new Dimension(120, 30));
-        
         dcTuNgay.setDateFormatString("dd-MM-yyyy");
         dcDenNgay.setDateFormatString("dd-MM-yyyy");
-
-        row2.add(new JLabel("Tháng:"));
-        row2.add(txtThang);
-        row2.add(new JLabel("Năm:"));
-        row2.add(txtNam);
-        row2.add(new JLabel("Quý:"));
-        row2.add(txtQuy);
-        row2.add(new JLabel("Từ:"));
-        row2.add(dcTuNgay);
-        row2.add(new JLabel("Đến:"));
-        row2.add(dcDenNgay);
-
-        // Button
-        JPanel row3 = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        row3.setBackground(bgColor);
+        dcTuNgay.setPreferredSize(new Dimension(140, 32));
+        dcDenNgay.setPreferredSize(new Dimension(140, 32));
 
         btnThongKe = createStyledButton("Thống kê", btnBlue, 130);
         btnRefresh = createStyledButton("Làm mới", btnGreen, 130);
+        btnExportTabExcel = createStyledButton("⬇ Excel tab", new Color(16, 185, 129), 130);
 
-        btnThongKe.addActionListener(e -> xuLyThongKe());
-        btnRefresh.addActionListener(e -> refresh());
+        btnThongKe.addActionListener(e -> thongKeTatCa());
+        btnRefresh.addActionListener(e -> {
+            initDefaultDates();
+            thongKeTatCa();
+        });
+        btnExportTabExcel.addActionListener(e -> exportCurrentTabToExcel());
 
-        row3.add(btnThongKe);
-        row3.add(btnRefresh);
-
-        controlPanel.add(row1);
-        controlPanel.add(row2);
-        controlPanel.add(row3);
+        controlPanel.add(new JLabel("Từ ngày:"));
+        controlPanel.add(dcTuNgay);
+        controlPanel.add(new JLabel("Đến ngày:"));
+        controlPanel.add(dcDenNgay);
+        controlPanel.add(btnThongKe);
+        controlPanel.add(btnRefresh);
+        controlPanel.add(btnExportTabExcel);
 
         return controlPanel;
     }
 
-    private void xuLyThongKe() {
-        tblModel.setRowCount(0);
+    private void initDefaultDates() {
+        Calendar cal = Calendar.getInstance();
+        java.util.Date denNgay = cal.getTime();
+        cal.set(Calendar.DAY_OF_MONTH, 1);
+        java.util.Date tuNgay = cal.getTime();
 
-        String loai = cboLoaiThongKe.getSelectedItem().toString();
-        double res = 0;
+        dcTuNgay.setDate(tuNgay);
+        dcDenNgay.setDate(denNgay);
+    }
 
-        try {
-            switch (loai) {
-                case "Theo tháng":
-                    int thang = Integer.parseInt(txtThang.getText());
-                    int nam = Integer.parseInt(txtNam.getText());
-                    res = hd.thongKeDoanhThuTheoThang(thang, nam);
-                    tblModel.addRow(new Object[] {"Tháng", thang + "/" + nam, res});
-                    break;
-                case "Theo quý":
-                    int quy = Integer.parseInt(txtQuy.getText());
-                    nam = Integer.parseInt(txtQuy.getText());
-                    res = hd.thongKeDoanhThuTheoQuy(quy, nam);
-                    tblModel.addRow(new Object[] {"Quý", "Q" + quy + "/" + nam, res});
-                    break;
-                case "Theo năm":
-                    nam = Integer.parseInt(txtNam.getText());
-                    res = hd.thongKeDoanhThuTheoNam(nam);
-                    tblModel.addRow(new Object[] {"Năm", nam, res});
-                    break;
-                case "Khoảng ngày":
-                    java.util.Date tuNgay = dcTuNgay.getDate();
-                    java.util.Date denNgay = dcDenNgay.getDate();
+    private void thongKeTatCa() {
+        java.util.Date tuUtil = dcTuNgay.getDate();
+        java.util.Date denUtil = dcDenNgay.getDate();
 
-                    if(tuNgay == null || denNgay == null) {
-                        JOptionPane.showMessageDialog(this, "Vui lòng chọn ngày!");
-                        return;
-                    }
+        if (tuUtil == null || denUtil == null) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn đầy đủ từ ngày và đến ngày.", "Thông báo",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
 
-                    java.sql.Date tu = new java.sql.Date(tuNgay.getTime());
-                    java.sql.Date den = new java.sql.Date(denNgay.getTime());
+        Date tuNgay = new Date(tuUtil.getTime());
+        Date denNgay = new Date(denUtil.getTime());
 
-                    res = hd.thongKeDoanhThuTheoKhoangNgay(tu, den);
-                    tblModel.addRow(new Object[] {"Khoảng", tu + " - " + den, res});
-                    break;
-            }
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Lỗi nhập dữ liệu!");
+        if (tuNgay.after(denNgay)) {
+            JOptionPane.showMessageDialog(this, "Từ ngày không được lớn hơn đến ngày.", "Thông báo",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        modelDoanhThu.setRowCount(0);
+        for (Object[] row : thongKeBUS.thongKeDoanhThu(tuNgay, denNgay)) {
+            modelDoanhThu.addRow(row);
+        }
+
+        modelThuNhap.setRowCount(0);
+        for (Object[] row : thongKeBUS.thongKeThuNhap(tuNgay, denNgay)) {
+            modelThuNhap.addRow(row);
+        }
+
+        modelNhap.setRowCount(0);
+        for (Object[] row : thongKeBUS.thongKeSoLuongNhap(tuNgay, denNgay)) {
+            modelNhap.addRow(row);
+        }
+
+        modelBan.setRowCount(0);
+        for (Object[] row : thongKeBUS.thongKeSoLuongBan(tuNgay, denNgay)) {
+            modelBan.addRow(row);
         }
     }
 
-    private void refresh() {
-        tblModel.setRowCount(0);
+    private void exportCurrentTabToExcel() {
+        if (tabbedPane == null) {
+            return;
+        }
+
+        int idx = tabbedPane.getSelectedIndex();
+        if (idx < 0) {
+            JOptionPane.showMessageDialog(this, "Không xác định được tab thống kê hiện tại.", "Thông báo",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        JTable table;
+        String tabName;
+        if (idx == 0) {
+            table = tblDoanhThu;
+            tabName = "ThongKe_DoanhThu";
+        } else if (idx == 1) {
+            table = tblThuNhap;
+            tabName = "ThongKe_ThuNhap";
+        } else if (idx == 2) {
+            table = tblNhap;
+            tabName = "ThongKe_SoLuongNhap";
+        } else {
+            table = tblBan;
+            tabName = "ThongKe_SoLuongBan";
+        }
+
+        if (table.getRowCount() == 0) {
+            JOptionPane.showMessageDialog(this,
+                    "Tab hiện tại chưa có dữ liệu để xuất.",
+                    "Thông báo",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        JFileChooser chooser = new JFileChooser();
+        chooser.setDialogTitle("Chọn nơi lưu Excel thống kê");
+        chooser.setSelectedFile(new File(tabName + ".xlsx"));
+        int option = chooser.showSaveDialog(this);
+        if (option != JFileChooser.APPROVE_OPTION) {
+            return;
+        }
+
+        File file = ensureXlsxExtension(chooser.getSelectedFile());
+        try {
+            writeTableToExcel(file, tabbedPane.getTitleAt(idx), table);
+            JOptionPane.showMessageDialog(this,
+                    "Xuất Excel thành công:\n" + file.getAbsolutePath(),
+                    "Thông báo",
+                    JOptionPane.INFORMATION_MESSAGE);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this,
+                    "Xuất Excel thất bại: " + ex.getMessage(),
+                    "Lỗi",
+                    JOptionPane.ERROR_MESSAGE);
+        }
     }
 
-    // ==================== HELPER METHODS ====================
+    private void writeTableToExcel(File file, String sheetName, JTable table) throws Exception {
+        try (Workbook wb = new XSSFWorkbook()) {
+            Sheet sheet = wb.createSheet(sheetName);
+
+            Row headerRow = sheet.createRow(0);
+            for (int c = 0; c < table.getColumnCount(); c++) {
+                headerRow.createCell(c).setCellValue(table.getColumnName(c));
+            }
+
+            for (int r = 0; r < table.getRowCount(); r++) {
+                Row row = sheet.createRow(r + 1);
+                for (int c = 0; c < table.getColumnCount(); c++) {
+                    Object value = table.getValueAt(r, c);
+                    if (value instanceof Number) {
+                        row.createCell(c).setCellValue(((Number) value).doubleValue());
+                    } else {
+                        row.createCell(c).setCellValue(value == null ? "" : String.valueOf(value));
+                    }
+                }
+            }
+
+            for (int i = 0; i < table.getColumnCount(); i++) {
+                sheet.autoSizeColumn(i);
+            }
+
+            try (FileOutputStream fos = new FileOutputStream(file)) {
+                wb.write(fos);
+            }
+        }
+    }
+
+    private File ensureXlsxExtension(File file) {
+        String path = file.getAbsolutePath();
+        if (!path.toLowerCase().endsWith(".xlsx")) {
+            return new File(path + ".xlsx");
+        }
+        return file;
+    }
+
     private void styleTableHeader(JTable table) {
         JTableHeader header = table.getTableHeader();
         header.setFont(boldFont);
         header.setBackground(primaryColor);
         header.setForeground(Color.WHITE);
         header.setPreferredSize(new Dimension(header.getWidth(), 40));
-        
+
         DefaultTableCellRenderer headerRenderer = new DefaultTableCellRenderer();
         headerRenderer.setHorizontalAlignment(JLabel.CENTER);
         headerRenderer.setBackground(primaryColor);
         headerRenderer.setForeground(Color.WHITE);
         headerRenderer.setFont(boldFont);
-        
+
         for (int i = 0; i < table.getColumnCount(); i++) {
             table.getColumnModel().getColumn(i).setHeaderRenderer(headerRenderer);
         }
@@ -236,7 +354,7 @@ public class ThongKePanel extends JPanel {
                 super.paintComponent(g);
             }
         };
-        
+
         btn.setPreferredSize(new Dimension(width, 40));
         btn.setBackground(bgColor);
         btn.setForeground(Color.WHITE);
@@ -246,21 +364,20 @@ public class ThongKePanel extends JPanel {
         btn.setContentAreaFilled(false);
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btn.setOpaque(false);
-        
-        // Hover effect
+
         Color originalColor = bgColor;
         btn.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
                 btn.setBackground(originalColor.darker());
             }
+
             @Override
             public void mouseExited(MouseEvent e) {
                 btn.setBackground(originalColor);
             }
         });
-        
+
         return btn;
     }
-    
 }
