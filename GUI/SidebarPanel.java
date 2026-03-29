@@ -1,4 +1,4 @@
-
+package GUI;
 
 import javax.swing.*;
 import java.awt.*;
@@ -96,7 +96,7 @@ public class SidebarPanel extends JPanel {
                 { "sale.png", "Khuyến mãi", ContentPanel.KHUYEN_MAI },
                 { "cake.png", "Quản lí bánh", ContentPanel.QUAN_LI_BANH },
                 { "multiple-users-silhouette.png", "Quản lí nhân sự", ContentPanel.NHAN_SU },
-                {"invoice.png", "Quản lí hóa đơn", ContentPanel.HOA_DON },
+                { "invoice.png", "Quản lí hóa đơn", ContentPanel.HOA_DON },
                 { "bar-chart.png", "Thống kê", ContentPanel.THONG_KE },
                 { "gift.png", "Tích điểm", ContentPanel.TICH_DIEM },
                 { "supplier.png", "Phiếu nhập hàng", ContentPanel.PHIEU_NHAP },

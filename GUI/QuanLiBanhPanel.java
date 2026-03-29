@@ -1,4 +1,4 @@
-
+package GUI;
 
 import javax.swing.*;
 import javax.swing.table.*;
@@ -344,8 +344,8 @@ public class QuanLiBanhPanel extends JPanel {
                         b.getSoLuong(),
                         b.getMaDVT(),
                         b.getMaLoai(),
-                    b.getMaHang(),
-                    "☰"
+                        b.getMaHang(),
+                        "☰"
                 });
             }
         }
