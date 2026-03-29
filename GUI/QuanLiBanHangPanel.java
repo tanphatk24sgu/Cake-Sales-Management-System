@@ -20,12 +20,14 @@ import java.util.Date;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 public class QuanLiBanHangPanel extends JPanel {
 
     // Components
     private JTable tableProducts, tableCart;
     private DefaultTableModel productModel, cartModel;
+    private TableRowSorter<DefaultTableModel> productSorter;
     private JTextField txtSearchProduct, txtPhoneCustomer, txtCustomerName;
     private JLabel lblTotalAmount, lblDiscount, lblFinalAmount, lblCustomerPoints, lblPromotionName;
     private JButton btnPay, btnClearCart, btnSelectPromotion;
@@ -163,6 +165,8 @@ public class QuanLiBanHangPanel extends JPanel {
                 BorderFactory.createEmptyBorder(5, 10, 5, 10)));
 
         JButton btnSearch = createSmallButton("Tìm", primaryColor);
+        btnSearch.addActionListener(e -> applyProductSearchFilter());
+        txtSearchProduct.addActionListener(e -> applyProductSearchFilter());
 
         searchPanel.add(txtSearchProduct);
         searchPanel.add(btnSearch);
@@ -180,6 +184,8 @@ public class QuanLiBanHangPanel extends JPanel {
         };
 
         tableProducts = new JTable(productModel);
+        productSorter = new TableRowSorter<>(productModel);
+        tableProducts.setRowSorter(productSorter);
         tableProducts.setRowHeight(45);
         tableProducts.setFont(normalFont);
         tableProducts.setGridColor(new Color(243, 244, 246));
@@ -623,9 +629,11 @@ public class QuanLiBanHangPanel extends JPanel {
             return;
         }
 
+        int modelRow = tableProducts.convertRowIndexToModel(selectedRow);
+
         // Lấy thông tin sản phẩm
-        String tenBanh = productModel.getValueAt(selectedRow, 1).toString();
-        String donGia = productModel.getValueAt(selectedRow, 2).toString();
+        String tenBanh = productModel.getValueAt(modelRow, 1).toString();
+        String donGia = productModel.getValueAt(modelRow, 2).toString();
 
         // Kiểm tra đã có trong giỏ chưa
         for (int i = 0; i < cartModel.getRowCount(); i++) {
@@ -645,6 +653,21 @@ public class QuanLiBanHangPanel extends JPanel {
         cartModel.addRow(new Object[] { stt, tenBanh, 1, donGia, moneyFormat.format(price), null });
 
         updateCartTotal();
+    }
+
+    private void applyProductSearchFilter() {
+        if (productSorter == null) {
+            return;
+        }
+
+        String keyword = txtSearchProduct == null ? "" : txtSearchProduct.getText().trim();
+        if (keyword.isEmpty()) {
+            productSorter.setRowFilter(null);
+            return;
+        }
+
+        RowFilter<DefaultTableModel, Object> byIdOrName = RowFilter.regexFilter("(?i)" + Pattern.quote(keyword), 0, 1);
+        productSorter.setRowFilter(byIdOrName);
     }
 
     private void removeFromCart() {
