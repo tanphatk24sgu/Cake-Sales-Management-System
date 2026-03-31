@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-
-=======
->>>>>>> 674d25f (Fix công thức)
 import Database.ConnectDatabase;
 
 import javax.swing.*;
