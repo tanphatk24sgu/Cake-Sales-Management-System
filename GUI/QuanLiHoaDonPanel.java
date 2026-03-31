@@ -119,7 +119,7 @@ public class QuanLiHoaDonPanel extends JPanel {
         lblTitle.setFont(headerFont);
         lblTitle.setForeground(primaryDark);
 
-        String[] cols = { "Mã HD", "Ngày lập HD", "Mã nhân viên", "Mã khách hàng", "Thành tiền", "☰" };
+        String[] cols = { "Mã HD", "Ngày lập HD", "Mã nhân viên", "Mã khách hàng", "Thành tiền", "≡" };
         invoiceModel = new DefaultTableModel(cols, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -427,7 +427,7 @@ public class QuanLiHoaDonPanel extends JPanel {
                     hd.getMaNV(),
                     hd.getMaKH(),
                     hd.getThanhTien(),
-                    "☰"
+                    "≡"
             };
             invoiceModel.addRow(row);
         }
@@ -915,7 +915,7 @@ public class QuanLiHoaDonPanel extends JPanel {
 
     private class MenuButtonRenderer extends JButton implements TableCellRenderer {
         public MenuButtonRenderer() {
-            setText("☰");
+            setText("≡");
             setFont(new Font("Segoe UI", Font.BOLD, 16));
             setFocusPainted(false);
             setBorderPainted(false);
@@ -936,7 +936,7 @@ public class QuanLiHoaDonPanel extends JPanel {
 
         public MenuButtonEditor(JTable table) {
             super(new JCheckBox());
-            this.button = new JButton("☰");
+            this.button = new JButton("≡");
             this.button.setFont(new Font("Segoe UI", Font.BOLD, 16));
             this.button.setFocusPainted(false);
             this.button.setBorderPainted(false);
@@ -959,7 +959,7 @@ public class QuanLiHoaDonPanel extends JPanel {
 
         @Override
         public Object getCellEditorValue() {
-            return "☰";
+            return "≡";
         }
     }
 

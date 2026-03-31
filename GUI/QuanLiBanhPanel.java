@@ -127,7 +127,7 @@ public class QuanLiBanhPanel extends JPanel {
                 BorderFactory.createEmptyBorder(0, 0, 0, 0)));
 
         // Định nghĩa cột
-        String[] columns = { "Mã bánh", "Tên bánh", "Số lượng", "Đơn vị tính", "Loại bánh", "Hãng SX", "☰" };
+        String[] columns = { "Mã bánh", "Tên bánh", "Số lượng", "Đơn vị tính", "Loại bánh", "Hãng SX", "≡" };
 
         // Tạo model (không cho edit trực tiếp)
         tableModel = new DefaultTableModel(columns, 0) {
@@ -311,7 +311,7 @@ public class QuanLiBanhPanel extends JPanel {
                     b.getMaDVT(),
                     b.getMaLoai(),
                     b.getMaHang(),
-                    "☰"
+                    "≡"
             });
         }
         if (lblTotal != null) {
@@ -343,7 +343,7 @@ public class QuanLiBanhPanel extends JPanel {
                         b.getMaDVT(),
                         b.getMaLoai(),
                         b.getMaHang(),
-                        "☰"
+                        "≡"
                 });
             }
         }
@@ -610,7 +610,7 @@ public class QuanLiBanhPanel extends JPanel {
 
     private class FormulaActionRenderer extends JButton implements TableCellRenderer {
         public FormulaActionRenderer() {
-            setText("☰");
+            setText("≡");
             setFont(new Font("Segoe UI", Font.BOLD, 16));
             setFocusPainted(false);
             setBorderPainted(false);
@@ -630,7 +630,7 @@ public class QuanLiBanhPanel extends JPanel {
 
         public FormulaActionEditor(JTable table) {
             super(new JCheckBox());
-            button = new JButton("☰");
+            button = new JButton("≡");
             button.setFont(new Font("Segoe UI", Font.BOLD, 16));
             button.setFocusPainted(false);
             button.setBorderPainted(false);
@@ -655,7 +655,7 @@ public class QuanLiBanhPanel extends JPanel {
 
         @Override
         public Object getCellEditorValue() {
-            return "☰";
+            return "≡";
         }
     }
 

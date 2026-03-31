@@ -157,7 +157,7 @@ public class QuanLiPhieuNhapPanel extends JPanel {
         title.setFont(headerFont);
         title.setForeground(primaryDark);
 
-        String[] cols = { "Mã PN", "Ngày", "Mã NV", "Mã NCC", "Tổng tiền", "☰" };
+        String[] cols = { "Mã PN", "Ngày", "Mã NV", "Mã NCC", "Tổng tiền", "≡" };
         phieuNhapModel = new DefaultTableModel(cols, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -258,7 +258,7 @@ public class QuanLiPhieuNhapPanel extends JPanel {
                         rs.getInt("MaNV"),
                         rs.getInt("MaNCC"),
                         rs.getDouble("TongTien"),
-                        "☰"
+                        "≡"
                 });
             }
         } catch (Exception ex) {
@@ -437,15 +437,9 @@ public class QuanLiPhieuNhapPanel extends JPanel {
             }
             String loai = String.valueOf(detailModel.getValueAt(idx, 0));
             cmbLoai.setSelectedItem(loai);
-<<<<<<< HEAD
                 setSelectedMaBanh(cmbMaBanh,
                     detailModel.getValueAt(idx, 1) == null ? null : Integer.valueOf(String.valueOf(detailModel.getValueAt(idx, 1))));
                 txtMaNVL.setText(
-=======
-            txtMaBanh.setText(
-                    detailModel.getValueAt(idx, 1) == null ? "" : String.valueOf(detailModel.getValueAt(idx, 1)));
-            txtMaNVL.setText(
->>>>>>> 17eb172b3db081e59ec37843caeabcbdb82b1b7c
                     detailModel.getValueAt(idx, 3) == null ? "" : String.valueOf(detailModel.getValueAt(idx, 3)));
             txtSoLuong.setText(String.valueOf(detailModel.getValueAt(idx, 5)));
             txtDonGia.setText(String.valueOf(detailModel.getValueAt(idx, 6)));
@@ -1304,7 +1298,7 @@ public class QuanLiPhieuNhapPanel extends JPanel {
 
     private class ActionRenderer extends JButton implements TableCellRenderer {
         public ActionRenderer() {
-            setText("☰");
+            setText("≡");
             setFont(new Font("Segoe UI", Font.BOLD, 16));
             setFocusPainted(false);
             setBorderPainted(false);
@@ -1324,7 +1318,7 @@ public class QuanLiPhieuNhapPanel extends JPanel {
 
         public ActionEditor(JTable table) {
             super(new JCheckBox());
-            button = new JButton("☰");
+            button = new JButton("≡");
             button.setFont(new Font("Segoe UI", Font.BOLD, 16));
             button.setFocusPainted(false);
             button.setBorderPainted(false);
@@ -1347,7 +1341,7 @@ public class QuanLiPhieuNhapPanel extends JPanel {
 
         @Override
         public Object getCellEditorValue() {
-            return "☰";
+            return "≡";
         }
     }
 
