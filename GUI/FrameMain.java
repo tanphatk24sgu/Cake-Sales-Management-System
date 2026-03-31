@@ -8,7 +8,8 @@ public class FrameMain extends JFrame {
 
     public FrameMain() {
         setTitle("Hệ thống quản lí của hàng bánh");
-        setSize(WIDTH, HEIGHT);
+        // setSize(WIDTH, HEIGHT);
+        setExtendedState(MAXIMIZED_BOTH);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
 
