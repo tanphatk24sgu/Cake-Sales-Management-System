@@ -359,7 +359,7 @@ public class QuanLiPhieuNhapPanel extends JPanel {
         cmbLoai.addActionListener(e -> applyLoaiSelection(cmbLoai, cmbMaBanh, txtMaNVL));
 
         String[] detailCols = { "Loại", "Mã bánh", "Tên bánh", "Mã NVL", "Tên NVL", "Số lượng", "Đơn giá",
-            "Tình trạng" };
+                "Tình trạng" };
         DefaultTableModel detailModel = new DefaultTableModel(detailCols, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -437,13 +437,19 @@ public class QuanLiPhieuNhapPanel extends JPanel {
             }
             String loai = String.valueOf(detailModel.getValueAt(idx, 0));
             cmbLoai.setSelectedItem(loai);
+<<<<<<< HEAD
                 setSelectedMaBanh(cmbMaBanh,
                     detailModel.getValueAt(idx, 1) == null ? null : Integer.valueOf(String.valueOf(detailModel.getValueAt(idx, 1))));
                 txtMaNVL.setText(
+=======
+            txtMaBanh.setText(
+                    detailModel.getValueAt(idx, 1) == null ? "" : String.valueOf(detailModel.getValueAt(idx, 1)));
+            txtMaNVL.setText(
+>>>>>>> 17eb172b3db081e59ec37843caeabcbdb82b1b7c
                     detailModel.getValueAt(idx, 3) == null ? "" : String.valueOf(detailModel.getValueAt(idx, 3)));
-                txtSoLuong.setText(String.valueOf(detailModel.getValueAt(idx, 5)));
-                txtDonGia.setText(String.valueOf(detailModel.getValueAt(idx, 6)));
-                txtTinhTrang.setText(
+            txtSoLuong.setText(String.valueOf(detailModel.getValueAt(idx, 5)));
+            txtDonGia.setText(String.valueOf(detailModel.getValueAt(idx, 6)));
+            txtTinhTrang.setText(
                     detailModel.getValueAt(idx, 7) == null ? "" : String.valueOf(detailModel.getValueAt(idx, 7)));
             applyLoaiSelection(cmbLoai, cmbMaBanh, txtMaNVL);
         });
@@ -594,10 +600,10 @@ public class QuanLiPhieuNhapPanel extends JPanel {
     private List<Object[]> getChiTietByPhieuNhap(int maPhieuNhap) {
         List<Object[]> rows = new ArrayList<>();
         String sql = "SELECT c.MaBanh, b.TenBanh, c.MaNVL, n.Ten AS TenNVL, c.SoLuong, c.DonGia, c.TinhTrang "
-            + "FROM ct_phieunhaphang c "
-            + "LEFT JOIN banh b ON c.MaBanh = b.MaBanh "
-            + "LEFT JOIN nguyenlieu n ON c.MaNVL = n.MaNL "
-            + "WHERE c.MaPhieuNhap = ? ORDER BY c.MaBanh, c.MaNVL";
+                + "FROM ct_phieunhaphang c "
+                + "LEFT JOIN banh b ON c.MaBanh = b.MaBanh "
+                + "LEFT JOIN nguyenlieu n ON c.MaNVL = n.MaNL "
+                + "WHERE c.MaPhieuNhap = ? ORDER BY c.MaBanh, c.MaNVL";
         try (Connection conn = ConnectDatabase.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, maPhieuNhap);
@@ -847,7 +853,7 @@ public class QuanLiPhieuNhapPanel extends JPanel {
             }
 
             Integer maBanh = parseOptionalInt(String.valueOf(model.getValueAt(row, 1)));
-                Integer maNvl = parseOptionalInt(String.valueOf(model.getValueAt(row, 3)));
+            Integer maNvl = parseOptionalInt(String.valueOf(model.getValueAt(row, 3)));
             int confirm = JOptionPane.showConfirmDialog(dialog,
                     "Xóa chi tiết (Mã bánh " + (maBanh == null ? "trống" : maBanh)
                             + ", Mã NVL " + (maNvl == null ? "trống" : maNvl) + ")?",

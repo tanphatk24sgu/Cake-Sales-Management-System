@@ -1,32 +1,28 @@
 package DAO;
 
 import java.sql.*;
+import java.util.ArrayList;
 import Database.ConnectDatabase;
+import DTO.KhuyenMaiDTO;
 
 public class KhuyenMaiDAO {
-    private Connection conn;
 
-    public KhuyenMaiDAO() {
-        conn = ConnectDatabase.getConnection();
-    }
+    public ArrayList<KhuyenMaiDTO> getAll() {
+        ArrayList<KhuyenMaiDTO> list = new ArrayList<>();
 
-    public java.util.ArrayList<DTO.KhuyenMaiDTO> getAll() {
-        java.util.ArrayList<DTO.KhuyenMaiDTO> list = new java.util.ArrayList<>();
+        String sql = "SELECT * FROM chuongtrinhkhuyenmai";
 
-        try {
-            String sql = "SELECT * FROM chuongtrinhkhuyenmai";
-            java.sql.PreparedStatement ps = conn.prepareStatement(sql);
-            java.sql.ResultSet rs = ps.executeQuery();
-
+        try (
+                Connection conn = ConnectDatabase.getConnection(); // 🔥 lấy mới mỗi lần
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery();) {
             while (rs.next()) {
-                DTO.KhuyenMaiDTO km = new DTO.KhuyenMaiDTO();
+                KhuyenMaiDTO km = new KhuyenMaiDTO();
 
                 km.setMaKM(rs.getInt("MaKM"));
-                km.setTenKM(rs.getString("TenCTKM")); // ✅ ĐÚNG
-
-                km.setPhanTramGiam(rs.getInt("PhanTramGiam")); // ✅ ĐÚNG
-
-                km.setDieuKien((int) rs.getDouble("DieuKienToiThieu")); // ✅ ĐÚNG
+                km.setTenKM(rs.getString("TenCTKM"));
+                km.setPhanTramGiam(rs.getInt("PhanTramGiam"));
+                km.setDieuKien((int) rs.getDouble("DieuKienToiThieu"));
 
                 list.add(km);
             }

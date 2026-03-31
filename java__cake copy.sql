@@ -495,7 +495,12 @@ INSERT INTO CHITIETHOADON (MaHD, MaBanh, SoLuong, DonGia, Diem) VALUES
 
 INSERT INTO PHIEUNHAPHANG(MaNV, MaNCC) VALUES
 (1,1),(2,2),(3,3),(4,4),(5,5),
-(6,6),(7,7),(8,8),(9,9),(10,10);
+(6,6),(7,7),(8,8),(9,9),(10,10),
+(1,2),(2,3),(3,4),(4,5),(5,6),
+(6,7),(7,8),(8,9),(9,10),(10,1),
+
+(11,2),(12,3),(13,4),(14,5),(15,6),
+(16,7),(17,8),(18,9),(19,10),(20,1);
 
 INSERT INTO CT_PHIEUNHAPHANG(MaPhieuNhap, MaBanh, MaNVL, SoLuong, DonGia, TinhTrang) VALUES
 (1,1,1,10,20000,'OK'),(1,2,2,5,15000,'OK'),(1,3,3,7,30000,'OK'),
@@ -508,6 +513,68 @@ INSERT INTO CT_PHIEUNHAPHANG(MaPhieuNhap, MaBanh, MaNVL, SoLuong, DonGia, TinhTr
 (8,2,2,7,15000,'OK'),(8,3,3,8,30000,'OK'),(8,4,4,9,3000,'OK'),
 (9,5,5,6,50000,'OK'),(9,6,6,7,70000,'OK'),(9,7,7,8,60000,'OK'),
 (10,8,8,5,80000,'OK'),(10,9,9,9,5000,'OK'),(10,10,10,6,90000,'OK');
+
+INSERT INTO CT_PHIEUNHAPHANG (MaPhieuNhap, MaBanh, MaNVL, SoLuong, DonGia, TinhTrang) VALUES
+
+-- Phiếu 11
+(11,1,1,10,20000,'OK'),(11,2,2,5,15000,'OK'),(11,3,3,7,30000,'OK'),
+
+-- Phiếu 12
+(12,4,4,20,3000,'OK'),(12,5,5,10,50000,'OK'),(12,6,6,8,70000,'OK'),
+
+-- Phiếu 13
+(13,7,7,6,60000,'OK'),(13,8,8,3,80000,'OK'),(13,9,9,9,5000,'OK'),
+
+-- Phiếu 14
+(14,10,10,5,90000,'OK'),(14,1,1,6,20000,'OK'),(14,2,2,7,15000,'OK'),
+
+-- Phiếu 15
+(15,3,3,8,30000,'OK'),(15,4,4,9,3000,'OK'),(15,5,5,6,50000,'OK'),
+
+-- Phiếu 16
+(16,6,6,7,70000,'OK'),(16,7,7,8,60000,'OK'),(16,8,8,5,80000,'OK'),
+
+-- Phiếu 17
+(17,9,9,9,5000,'OK'),(17,10,10,6,90000,'OK'),(17,1,1,6,20000,'OK'),
+
+-- Phiếu 18
+(18,2,2,7,15000,'OK'),(18,3,3,8,30000,'OK'),(18,4,4,9,3000,'OK'),
+
+-- Phiếu 19
+(19,5,5,6,50000,'OK'),(19,6,6,7,70000,'OK'),(19,7,7,8,60000,'OK'),
+
+-- Phiếu 20
+(20,8,8,5,80000,'OK'),(20,9,9,9,5000,'OK'),(20,10,10,6,90000,'OK'),
+
+-- Phiếu 21
+(21,1,2,10,20000,'OK'),(21,3,4,5,15000,'OK'),(21,5,6,7,30000,'OK'),
+
+-- Phiếu 22
+(22,2,3,20,3000,'OK'),(22,4,5,10,50000,'OK'),(22,6,7,8,70000,'OK'),
+
+-- Phiếu 23
+(23,7,8,6,60000,'OK'),(23,9,10,3,80000,'OK'),(23,1,1,9,5000,'OK'),
+
+-- Phiếu 24
+(24,3,2,5,90000,'OK'),(24,5,4,6,20000,'OK'),(24,7,6,7,15000,'OK'),
+
+-- Phiếu 25
+(25,8,3,8,30000,'OK'),(25,10,5,9,3000,'OK'),(25,2,7,6,50000,'OK'),
+
+-- Phiếu 26
+(26,4,6,7,70000,'OK'),(26,6,8,8,60000,'OK'),(26,8,10,5,80000,'OK'),
+
+-- Phiếu 27
+(27,9,1,9,5000,'OK'),(27,1,3,6,90000,'OK'),(27,3,5,6,20000,'OK'),
+
+-- Phiếu 28
+(28,2,4,7,15000,'OK'),(28,4,6,8,30000,'OK'),(28,6,8,9,3000,'OK'),
+
+-- Phiếu 29
+(29,5,7,6,50000,'OK'),(29,7,9,7,70000,'OK'),(29,9,1,8,60000,'OK'),
+
+-- Phiếu 30
+(30,10,2,5,80000,'OK'),(30,1,4,9,5000,'OK'),(30,3,6,6,90000,'OK');
 
 INSERT INTO TICHDIEM VALUES
 (1,100),(2,200),(3,150),(4,300),(5,120),
@@ -523,14 +590,47 @@ INSERT INTO CT_CHUONGTRINHKHUYENMAI VALUES
 (1,1,10),(2,2,20),(3,3,30),(4,4,5),(5,5,15),
 (6,6,10),(7,7,20),(8,8,25),(9,9,30),(10,10,12);
 
-INSERT INTO CONGTHUC VALUES
-(1,1,'Trộn bột và nướng'),
-(2,1,'Nhào bột'),
-(3,1,'Nướng chocolate'),
-(4,1,'Trang trí'),
-(5,1,'Nướng giòn'),
-(6,1,'Làm lạnh'),
-(7,1,'Thêm trái cây'),
-(8,1,'Truyền thống'),
-(9,1,'Cao cấp'),
-(10,1,'Mini');
+INSERT INTO CONGTHUC (MaBanh, MaDVT, CachLam) VALUES
+-- Nhóm bánh hiện đại
+(1,1,'Trộn bột matcha, đánh kem, nướng và phủ lớp matcha'),
+(2,1,'Xếp lớp bánh và kem mascarpone, phủ cacao, làm lạnh'),
+(3,1,'Làm mousse xoài từ xoài xay, gelatin và kem tươi'),
+(4,1,'Hấp hỗn hợp trứng sữa caramel'),
+(5,1,'Nướng vỏ bánh, bơm nhân kem vào bên trong'),
+
+-- Nhóm bánh mì
+(6,1,'Nhào bột, ủ men, nướng bánh mì ngọt'),
+(18,1,'Nướng bánh mì sandwich mềm, cắt lát'),
+(19,1,'Nướng đế bánh, thêm topping và phô mai'),
+
+-- Nhóm bánh bông lan
+(7,1,'Đánh trứng, trộn bột, nướng bông lan'),
+(8,1,'Nướng bánh nhỏ, trang trí kem trên mặt'),
+
+-- Nhóm bánh lạnh
+(9,1,'Trộn phô mai với kem, làm lạnh tạo cheesecake'),
+(2,1,'Làm lạnh nhiều lớp kem và bánh'),
+
+-- Nhóm bánh chiên/nướng
+(10,1,'Chiên bột tạo hình donut, phủ đường hoặc socola'),
+(16,1,'Nướng waffle bằng khuôn, ăn kèm mật ong'),
+(17,1,'Chiên pancake trên chảo, ăn kèm siro'),
+
+-- Nhóm bánh truyền thống
+(13,1,'Nấu đậu xanh, làm nhân, nướng bánh'),
+(14,1,'Làm nhân đậu, bọc vỏ và nướng bánh pía'),
+(20,1,'Nướng bánh từ khoai mì và nước cốt dừa'),
+
+-- Nhóm bánh trái cây
+(21,1,'Nướng bánh chuối từ chuối chín nghiền'),
+(22,1,'Nướng bánh táo với lát táo tươi'),
+(23,1,'Nướng bánh việt quất với sốt berry'),
+(24,1,'Làm bánh từ sầu riêng, nướng nhẹ'),
+(25,1,'Nướng bánh cam với vỏ cam bào'),
+(26,1,'Làm bánh kiwi, phủ lát kiwi tươi'),
+(27,1,'Nướng bánh dứa, thêm mứt dứa'),
+
+-- Nhóm bánh khô
+(28,1,'Nướng bánh hạnh nhân giòn'),
+(29,1,'Nướng bánh mè thơm'),
+(30,1,'Nướng bánh gừng với gia vị đặc trưng');

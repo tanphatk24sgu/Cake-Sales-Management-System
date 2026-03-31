@@ -1,5 +1,3 @@
-
-
 import BUS.ChuongTrinhKhuyenMaiBUS;
 import BUS.HoaDonBUS;
 import DTO.ChiTietHoaDonDTO;
@@ -623,13 +621,13 @@ public class QuanLiBanHangPanel extends JPanel {
     private void loadProducts() {
         productModel.setRowCount(0);
         String sql = "SELECT b.MaBanh, b.TenBanh, b.SoLuong, "
-            + "COALESCE((SELECT cthd.DonGia FROM chitiethoadon cthd "
-            + "          WHERE cthd.MaBanh = b.MaBanh "
-            + "          ORDER BY cthd.MaHD DESC LIMIT 1), "
-            + "         (SELECT ctpn.DonGia FROM ct_phieunhaphang ctpn "
-            + "          WHERE ctpn.MaBanh = b.MaBanh "
-            + "          ORDER BY ctpn.MaPhieuNhap DESC LIMIT 1), 0) AS DonGia "
-            + "FROM banh b ORDER BY b.MaBanh";
+                + "COALESCE((SELECT cthd.DonGia FROM chitiethoadon cthd "
+                + "          WHERE cthd.MaBanh = b.MaBanh "
+                + "          ORDER BY cthd.MaHD DESC LIMIT 1), "
+                + "         (SELECT ctpn.DonGia FROM ct_phieunhaphang ctpn "
+                + "          WHERE ctpn.MaBanh = b.MaBanh "
+                + "          ORDER BY ctpn.MaPhieuNhap DESC LIMIT 1), 0) AS DonGia "
+                + "FROM banh b ORDER BY b.MaBanh";
         try (Connection conn = ConnectDatabase.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql);
                 ResultSet rs = ps.executeQuery()) {

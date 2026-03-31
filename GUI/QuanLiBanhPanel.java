@@ -1,5 +1,3 @@
-
-
 import javax.swing.*;
 import javax.swing.table.*;
 import java.awt.*;
@@ -344,8 +342,8 @@ public class QuanLiBanhPanel extends JPanel {
                         b.getSoLuong(),
                         b.getMaDVT(),
                         b.getMaLoai(),
-                    b.getMaHang(),
-                    "☰"
+                        b.getMaHang(),
+                        "☰"
                 });
             }
         }

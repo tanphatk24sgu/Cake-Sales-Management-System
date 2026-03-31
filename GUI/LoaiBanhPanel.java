@@ -15,7 +15,7 @@ public class LoaiBanhPanel extends JPanel {
         add(title, BorderLayout.NORTH);
 
         model = new DefaultTableModel(
-                new String[]{"Mã loại", "Tên loại"}, 0);
+                new String[] { "Mã loại", "Tên loại" }, 0);
 
         table = new JTable(model);
         add(new JScrollPane(table), BorderLayout.CENTER);

@@ -71,7 +71,7 @@ public class QuanLiHoaDonPanel extends JPanel {
         try {
             ImageIcon invoiceIcon = new ImageIcon("img/icon/invoice.png");
             Image img = invoiceIcon.getImage().getScaledInstance(32, 32, Image.SCALE_SMOOTH);
-           icon.setIcon(new ImageIcon(img));
+            icon.setIcon(new ImageIcon(img));
         } catch (Exception e) {
             icon.setText("🧾");
         }
@@ -112,15 +112,14 @@ public class QuanLiHoaDonPanel extends JPanel {
         JPanel panel = new JPanel(new BorderLayout(0, 10));
         panel.setBackground(bgColor);
         panel.setBorder((BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(229, 231, 235)),
-            BorderFactory.createEmptyBorder(15, 15, 15, 15)
-        )));
+                BorderFactory.createLineBorder(new Color(229, 231, 235)),
+                BorderFactory.createEmptyBorder(15, 15, 15, 15))));
 
         JLabel lblTitle = new JLabel("🧾 DANH SÁCH HÓA ĐƠN");
         lblTitle.setFont(headerFont);
         lblTitle.setForeground(primaryDark);
 
-        String[] cols = {"Mã HD", "Ngày lập HD", "Mã nhân viên", "Mã khách hàng", "Thành tiền", "☰"};
+        String[] cols = { "Mã HD", "Ngày lập HD", "Mã nhân viên", "Mã khách hàng", "Thành tiền", "☰" };
         invoiceModel = new DefaultTableModel(cols, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -144,7 +143,7 @@ public class QuanLiHoaDonPanel extends JPanel {
         tblInvoice.getColumnModel().getColumn(5).setMaxWidth(40);
         tblInvoice.getColumnModel().getColumn(5).setCellRenderer(new MenuButtonRenderer());
         tblInvoice.getColumnModel().getColumn(5).setCellEditor(new MenuButtonEditor(tblInvoice));
-        
+
         JScrollPane scrollPane = new JScrollPane(tblInvoice);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
 
@@ -192,13 +191,13 @@ public class QuanLiHoaDonPanel extends JPanel {
         header.setBackground(primaryColor);
         header.setForeground(Color.WHITE);
         header.setPreferredSize(new Dimension(header.getWidth(), 40));
-        
+
         DefaultTableCellRenderer headerRenderer = new DefaultTableCellRenderer();
         headerRenderer.setHorizontalAlignment(JLabel.CENTER);
         headerRenderer.setBackground(primaryColor);
         headerRenderer.setForeground(Color.WHITE);
         headerRenderer.setFont(boldFont);
-        
+
         for (int i = 0; i < table.getColumnCount(); i++) {
             table.getColumnModel().getColumn(i).setHeaderRenderer(headerRenderer);
         }
@@ -216,7 +215,7 @@ public class QuanLiHoaDonPanel extends JPanel {
                 super.paintComponent(g);
             }
         };
-        
+
         btn.setPreferredSize(new Dimension(width, 38));
         btn.setBackground(bgColor);
         btn.setForeground(Color.WHITE);
@@ -225,19 +224,20 @@ public class QuanLiHoaDonPanel extends JPanel {
         btn.setFocusPainted(false);
         btn.setContentAreaFilled(false);
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        
+
         Color originalColor = bgColor;
         btn.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
                 btn.setBackground(originalColor.darker());
             }
+
             @Override
             public void mouseExited(MouseEvent e) {
                 btn.setBackground(originalColor);
             }
         });
-        
+
         return btn;
     }
 
@@ -245,65 +245,64 @@ public class QuanLiHoaDonPanel extends JPanel {
         JDialog dialog = createHoaDonDialog("Thêm hóa đơn mới", null);
         dialog.setVisible(true);
     }
-    
+
     private void showEditDialog() {
         int selectedRow = tblInvoice.getSelectedRow();
         if (selectedRow == -1) {
-            JOptionPane.showMessageDialog(this, 
-                "Vui lòng chọn hóa đơn cần sửa!", 
-                "Thông báo", 
-                JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this,
+                    "Vui lòng chọn hóa đơn cần sửa!",
+                    "Thông báo",
+                    JOptionPane.WARNING_MESSAGE);
             return;
         }
-        
+
         // Lấy dữ liệu dòng đang chọn
         Object[] rowData = new Object[invoiceModel.getColumnCount()];
         for (int i = 0; i < invoiceModel.getColumnCount(); i++) {
             rowData[i] = invoiceModel.getValueAt(selectedRow, i);
         }
-        
+
         JDialog dialog = createHoaDonDialog("Chỉnh sửa hóa đơn", rowData);
         dialog.setVisible(true);
     }
-    
+
     private JDialog createHoaDonDialog(String title, Object[] data) {
         JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), title, true);
         dialog.setSize(450, 400);
         dialog.setLocationRelativeTo(this);
         dialog.setLayout(new BorderLayout());
-        
+
         // Panel form
         JPanel formPanel = new JPanel(new GridBagLayout());
         formPanel.setBackground(Color.WHITE);
         formPanel.setBorder(BorderFactory.createEmptyBorder(25, 30, 25, 30));
-        
+
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(8, 5, 8, 5);
-        
-        String[] labels = {"Mã HD:", "Ngày lập HD:", "Mã nhân viên:", "Mã khách hàng:", "Thành tiền:"};
+
+        String[] labels = { "Mã HD:", "Ngày lập HD:", "Mã nhân viên:", "Mã khách hàng:", "Thành tiền:" };
         JTextField[] fields = new JTextField[labels.length];
-        
+
         for (int i = 0; i < labels.length; i++) {
             gbc.gridx = 0;
             gbc.gridy = i;
             gbc.weightx = 0.3;
-            
+
             JLabel lbl = new JLabel(labels[i]);
             lbl.setFont(normalFont);
             formPanel.add(lbl, gbc);
-            
+
             gbc.gridx = 1;
             gbc.weightx = 0.7;
-            
+
             fields[i] = new JTextField();
             fields[i].setPreferredSize(new Dimension(200, 35));
             fields[i].setFont(normalFont);
             fields[i].setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(209, 213, 219)),
-                BorderFactory.createEmptyBorder(5, 10, 5, 10)
-            ));
-            
+                    BorderFactory.createLineBorder(new Color(209, 213, 219)),
+                    BorderFactory.createEmptyBorder(5, 10, 5, 10)));
+
             // Điền dữ liệu nếu đang sửa
             if (data != null && i < data.length) {
                 if (i == 1 && data[i] instanceof java.util.Date) {
@@ -312,9 +311,10 @@ public class QuanLiHoaDonPanel extends JPanel {
                 } else {
                     fields[i].setText(String.valueOf(data[i]));
                 }
-                if (i == 0) fields[i].setEditable(false); // Không sửa mã
+                if (i == 0)
+                    fields[i].setEditable(false); // Không sửa mã
             }
-            
+
             formPanel.add(fields[i], gbc);
         }
 
@@ -322,14 +322,14 @@ public class QuanLiHoaDonPanel extends JPanel {
             fields[0].setText("Tự động");
             fields[0].setEditable(false);
         }
-        
+
         // Panel buttons
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 15));
         buttonPanel.setBackground(new Color(249, 250, 251));
-        
+
         JButton btnSave = createStyledButton("💾 Lưu", new Color(34, 197, 94), 100);
         JButton btnCancel = createStyledButton("Hủy", new Color(107, 114, 128), 100);
-        
+
         btnSave.addActionListener(e -> {
             try {
                 for (int i = 1; i < fields.length; i++) {
@@ -379,33 +379,33 @@ public class QuanLiHoaDonPanel extends JPanel {
             }
         });
         btnCancel.addActionListener(e -> dialog.dispose());
-            
-            buttonPanel.add(btnSave);
-            buttonPanel.add(btnCancel);
-            
-            dialog.add(formPanel, BorderLayout.CENTER);
-            dialog.add(buttonPanel, BorderLayout.SOUTH);
-            
-            return dialog;
+
+        buttonPanel.add(btnSave);
+        buttonPanel.add(btnCancel);
+
+        dialog.add(formPanel, BorderLayout.CENTER);
+        dialog.add(buttonPanel, BorderLayout.SOUTH);
+
+        return dialog;
     }
 
     private void deleteSelected() {
         int selectedRow = tblInvoice.getSelectedRow();
         if (selectedRow == -1) {
-            JOptionPane.showMessageDialog(this, 
-                "Vui lòng chọn bánh cần xóa!", 
-                "Thông báo", 
-                JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this,
+                    "Vui lòng chọn bánh cần xóa!",
+                    "Thông báo",
+                    JOptionPane.WARNING_MESSAGE);
             return;
         }
-        
+
         int maHD = Integer.parseInt(invoiceModel.getValueAt(selectedRow, 0).toString());
         int confirm = JOptionPane.showConfirmDialog(this,
-            "Bạn có chắc muốn xóa \"" + maHD + "\"?",
-            "Xác nhận xóa",
-            JOptionPane.YES_NO_OPTION,
-            JOptionPane.QUESTION_MESSAGE);
-        
+                "Bạn có chắc muốn xóa \"" + maHD + "\"?",
+                "Xác nhận xóa",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE);
+
         if (confirm == JOptionPane.YES_OPTION) {
             HoaDonBUS bus = new HoaDonBUS();
             bus.xoa(maHD);
@@ -413,21 +413,21 @@ public class QuanLiHoaDonPanel extends JPanel {
             JOptionPane.showMessageDialog(this, "Xóa thành công!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
         }
     }
-    
+
     private void loadInvoiceFromDB() {
         HoaDonBUS bus = new HoaDonBUS();
         bus.docDSHD();
 
         invoiceModel.setRowCount(0);
 
-        for(HoaDonDTO hd : bus.getDSHD()) {
+        for (HoaDonDTO hd : bus.getDSHD()) {
             Object[] row = {
-                hd.getMaHD(),
-                hd.getNgayLapHD(),
-                hd.getMaNV(),
-                hd.getMaKH(),
-                hd.getThanhTien(),
-                "☰"
+                    hd.getMaHD(),
+                    hd.getNgayLapHD(),
+                    hd.getMaNV(),
+                    hd.getMaKH(),
+                    hd.getThanhTien(),
+                    "☰"
             };
             invoiceModel.addRow(row);
         }
@@ -962,5 +962,5 @@ public class QuanLiHoaDonPanel extends JPanel {
             return "☰";
         }
     }
-    
+
 }
