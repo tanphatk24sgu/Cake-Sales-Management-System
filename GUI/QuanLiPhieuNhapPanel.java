@@ -438,7 +438,8 @@ public class QuanLiPhieuNhapPanel extends JPanel {
             String loai = String.valueOf(detailModel.getValueAt(idx, 0));
             cmbLoai.setSelectedItem(loai);
                 setSelectedMaBanh(cmbMaBanh,
-                    detailModel.getValueAt(idx, 1) == null ? null : Integer.valueOf(String.valueOf(detailModel.getValueAt(idx, 1))));
+                    detailModel.getValueAt(idx, 1) == null ? null
+                        : Integer.valueOf(String.valueOf(detailModel.getValueAt(idx, 1))));
                 txtMaNVL.setText(
                     detailModel.getValueAt(idx, 3) == null ? "" : String.valueOf(detailModel.getValueAt(idx, 3)));
             txtSoLuong.setText(String.valueOf(detailModel.getValueAt(idx, 5)));

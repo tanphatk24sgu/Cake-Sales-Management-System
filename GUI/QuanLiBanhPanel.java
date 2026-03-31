@@ -487,11 +487,18 @@ public class QuanLiBanhPanel extends JPanel {
                     return;
                 }
 
-                saveFormulaIfAny(b.getMaBanh(), b.getMaDVT(), txtCongThuc.getText().trim());
+                boolean formulaSaved = saveFormulaIfAny(b.getMaBanh(), b.getMaDVT(), txtCongThuc.getText().trim());
 
                 loadDataFromDB();
-                JOptionPane.showMessageDialog(dialog, "Lưu thành công!", "Thông báo",
+                if (formulaSaved) {
+                    JOptionPane.showMessageDialog(dialog, "Lưu thành công!", "Thông báo",
                         JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(dialog,
+                        "Đã lưu bánh, nhưng chưa lưu được công thức. Vui lòng kiểm tra lại phần công thức.",
+                        "Cảnh báo",
+                        JOptionPane.WARNING_MESSAGE);
+                }
                 dialog.dispose();
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(dialog, "Dữ liệu không hợp lệ: " + ex.getMessage(), "Lỗi",
@@ -510,16 +517,16 @@ public class QuanLiBanhPanel extends JPanel {
         return dialog;
     }
 
-    private void saveFormulaIfAny(int maBanh, int maDvt, String cachLam) {
+    private boolean saveFormulaIfAny(int maBanh, int maDvt, String cachLam) {
         if (cachLam == null || cachLam.isEmpty()) {
-            return;
+            return true;
         }
 
         CongThucDTO ct = new CongThucDTO();
         ct.setMaBanh(maBanh);
         ct.setMaDVT(maDvt <= 0 ? 1 : maDvt);
         ct.setCachLam(cachLam);
-        congThucBus.save(ct);
+        return congThucBus.save(ct);
     }
 
     private void showCongThucDialog(int maBanh, String tenBanh, int maDvt) {

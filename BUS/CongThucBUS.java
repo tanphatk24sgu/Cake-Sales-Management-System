@@ -11,7 +11,7 @@ public class CongThucBUS {
     }
 
     public boolean save(CongThucDTO ct) {
-        if (ct.getCachLam().trim().isEmpty())
+        if (ct == null || ct.getMaBanh() <= 0 || ct.getCachLam() == null || ct.getCachLam().trim().isEmpty())
             return false;
 
         CongThucDTO check = dao.getByMaBanh(ct.getMaBanh());

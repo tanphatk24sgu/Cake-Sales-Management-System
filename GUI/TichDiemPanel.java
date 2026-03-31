@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 
+=======
+>>>>>>> 674d25f (Fix công thức)
 import Database.ConnectDatabase;
 
 import javax.swing.*;
@@ -9,9 +12,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
-import BUS.KhuyenMaiBUS;
-import DTO.KhuyenMaiDTO;
-
 public class TichDiemPanel extends JPanel {
     private JTable tblKhachHang;
     private JTable tblKM;
@@ -19,8 +19,6 @@ public class TichDiemPanel extends JPanel {
     private DefaultTableModel khachModel;
     private DefaultTableModel kmModel;
     private final Color mainColor = new Color(231, 74, 131);
-
-    private KhuyenMaiBUS kmBUS = new KhuyenMaiBUS();
 
     public TichDiemPanel() {
         setLayout(new BorderLayout(15, 15));
@@ -123,7 +121,7 @@ public class TichDiemPanel extends JPanel {
 
             while (rs.next()) {
                 int diem = rs.getInt("Diem");
-                String trangThai = diem >= nguongDoiQua ? "Du diem doi qua" : "Chua du diem";
+                String trangThai = diem >= nguongDoiQua ? "Đủ điểm đổi quà" : "Chưa đủ điểm";
 
                 khachModel.addRow(new Object[] {
                         rs.getInt("MaKH"),
@@ -136,8 +134,8 @@ public class TichDiemPanel extends JPanel {
             }
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this,
-                    "Khong tai duoc du lieu tich diem: " + ex.getMessage(),
-                    "Loi",
+                    "Không tải được dữ liệu tích điểm: " + ex.getMessage(),
+                    "Lỗi",
                     JOptionPane.ERROR_MESSAGE);
         }
     }
@@ -163,11 +161,11 @@ public class TichDiemPanel extends JPanel {
 
                 String uuDai;
                 if (ptg > 0) {
-                    uuDai = "Giam " + ptg + "%";
+                    uuDai = "Giảm " + ptg + "%";
                 } else if (slMua > 0 && slTang > 0) {
-                    uuDai = "Mua " + slMua + " tang " + slTang;
+                    uuDai = "Mua " + slMua + " tặng " + slTang;
                 } else {
-                    uuDai = "Theo chuong trinh";
+                    uuDai = "Theo chương trình";
                 }
 
                 String hieuLuc = rs.getTimestamp("NgayBatDau") + " -> " + rs.getTimestamp("NgayKetThuc");
@@ -182,8 +180,8 @@ public class TichDiemPanel extends JPanel {
             }
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this,
-                    "Khong tai duoc danh sach khuyen mai: " + ex.getMessage(),
-                    "Loi",
+                    "Không tải được danh sách khuyến mãi: " + ex.getMessage(),
+                    "Lỗi",
                     JOptionPane.ERROR_MESSAGE);
         }
     }
