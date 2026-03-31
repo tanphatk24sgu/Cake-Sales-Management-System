@@ -4,6 +4,7 @@ import javax.swing.*;
 // Panel nội dung trung tâm, quản lý chuyển trang bằng CardLayout
 public class ContentPanel extends JPanel {
     private CardLayout cardLayout;
+    private QuanLiBanHangPanel quanLiBanHangPanel;
 
     // Tên các trang
     public static final String TRANG_CHU = "home";
@@ -16,6 +17,7 @@ public class ContentPanel extends JPanel {
     public static final String TICH_DIEM = "tich_diem";
     public static final String PHIEU_NHAP = "phieu_nhap";
     public static final String NHA_CUNG_CAP = "ncc";
+    public static final String KHACH_HANG = "customer";
     public static final String CAI_DAT = "settings";
 
     public ContentPanel() {
@@ -25,7 +27,8 @@ public class ContentPanel extends JPanel {
 
         // Thêm các panel
         add(createTrangChuPanel(), TRANG_CHU);
-        add(new QuanLiBanHangPanel(), BAN_HANG);
+        quanLiBanHangPanel = new QuanLiBanHangPanel();
+        add(quanLiBanHangPanel, BAN_HANG);
         add(new QuanLiKhuyenMaiPanel(), KHUYEN_MAI);
         add(new QuanLiBanhPanel(), QUAN_LI_BANH);
         add(new QuanLiNhanSuPanel(), NHAN_SU);
@@ -34,6 +37,7 @@ public class ContentPanel extends JPanel {
         add(new TichDiemPanel(), TICH_DIEM);
         add(new QuanLiPhieuNhapPanel(), PHIEU_NHAP);
         add(new NhaCungCapPanel(), NHA_CUNG_CAP);
+        add(new KhachHangPanel(), KHACH_HANG);
         add(createPlaceholderPanel("⚙️ CÀI ĐẶT", "Chức năng đang phát triển..."), CAI_DAT);
 
         // Hiển thị trang chủ mặc định
@@ -41,6 +45,9 @@ public class ContentPanel extends JPanel {
     }
 
     public void showPage(String page) {
+        if (BAN_HANG.equals(page) && quanLiBanHangPanel != null) {
+            quanLiBanHangPanel.refreshDataFromDatabase();
+        }
         cardLayout.show(this, page);
     }
 

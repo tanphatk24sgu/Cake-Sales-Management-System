@@ -7,6 +7,8 @@ import DTO.ChuongTrinhKhuyenMaiDTO;
 import DTO.HoaDonDTO;
 import Database.ConnectDatabase;
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -29,6 +31,8 @@ public class QuanLiBanHangPanel extends JPanel {
     private DefaultTableModel productModel, cartModel;
     private TableRowSorter<DefaultTableModel> productSorter;
     private JTextField txtSearchProduct, txtPhoneCustomer, txtCustomerName;
+    private JTextField txtRedeemPoints;
+    private JCheckBox chkUsePoints;
     private JLabel lblTotalAmount, lblDiscount, lblFinalAmount, lblCustomerPoints, lblPromotionName;
     private JButton btnPay, btnClearCart, btnSelectPromotion;
 
@@ -59,6 +63,11 @@ public class QuanLiBanHangPanel extends JPanel {
     private PromotionOption selectedPromotion = null;
     private boolean isUpdatingCart = false;
     private int selectedCustomerId = -1;
+    private int customerAvailablePoints = 0;
+    private int pointsRedeemedForCurrentOrder = 0;
+
+    private static final int POINTS_STEP = 100;
+    private static final int DISCOUNT_PER_STEP = 1000;
 
     public QuanLiBanHangPanel() {
         setBackground(bgColor);
@@ -75,6 +84,12 @@ public class QuanLiBanHangPanel extends JPanel {
         add(createFooter(), BorderLayout.SOUTH);
 
         // Load dữ liệu sản phẩm từ DB
+        loadProducts();
+        refreshPromotionsFromManager();
+        updatePromotionButtonState();
+    }
+
+    public void refreshDataFromDatabase() {
         loadProducts();
         refreshPromotionsFromManager();
         updatePromotionButtonState();
@@ -373,9 +388,53 @@ public class QuanLiBanHangPanel extends JPanel {
         lblCustomerPoints.setForeground(successColor);
         formPanel.add(lblCustomerPoints, gbc);
 
-        // Nút khách lẻ
+        // Dùng điểm tích lũy
         gbc.gridx = 0;
         gbc.gridy = 3;
+        gbc.gridwidth = 1;
+        formPanel.add(new JLabel("Dùng điểm:"), gbc);
+
+        gbc.gridx = 1;
+        gbc.gridwidth = 2;
+        JPanel pointUsePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
+        pointUsePanel.setBackground(cardColor);
+        chkUsePoints = new JCheckBox("Áp dụng điểm");
+        chkUsePoints.setBackground(cardColor);
+        chkUsePoints.setEnabled(false);
+        txtRedeemPoints = new JTextField("0", 8);
+        txtRedeemPoints.setEnabled(false);
+        JLabel lblRule = new JLabel("(100 điểm = 1.000đ)");
+        lblRule.setForeground(new Color(107, 114, 128));
+        pointUsePanel.add(chkUsePoints);
+        pointUsePanel.add(txtRedeemPoints);
+        pointUsePanel.add(lblRule);
+        formPanel.add(pointUsePanel, gbc);
+
+        chkUsePoints.addActionListener(e -> {
+            txtRedeemPoints.setEnabled(chkUsePoints.isSelected());
+            updateCartTotal();
+        });
+
+        txtRedeemPoints.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                updateCartTotal();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                updateCartTotal();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                updateCartTotal();
+            }
+        });
+
+        // Nút khách lẻ
+        gbc.gridx = 0;
+        gbc.gridy = 4;
         gbc.gridwidth = 3;
         JButton btnGuestCustomer = createStyledButton("👤 Khách lẻ (không cần SĐT)", new Color(107, 114, 128), 220);
         btnGuestCustomer.addActionListener(e -> setGuestCustomer());
@@ -742,6 +801,7 @@ public class QuanLiBanHangPanel extends JPanel {
         }
 
         promotionDiscount = selectedPromotion == null ? 0 : calculatePromotionDiscount(selectedPromotion);
+        customerDiscount = calculateRedeemDiscount(totalAmount, promotionDiscount);
         discount = customerDiscount + promotionDiscount;
         double finalAmount = Math.max(0, totalAmount - discount);
 
@@ -766,7 +826,10 @@ public class QuanLiBanHangPanel extends JPanel {
             return;
         }
 
-        String sql = "SELECT MaKH, Ho, Ten FROM khachhang WHERE SDT = ? LIMIT 1";
+        String sql = "SELECT kh.MaKH, kh.Ho, kh.Ten, IFNULL(td.TICHDIEM, 0) AS Diem "
+                + "FROM khachhang kh "
+                + "LEFT JOIN tichdiem td ON kh.MaKH = td.MaKH "
+                + "WHERE kh.SDT = ? LIMIT 1";
         try (Connection conn = ConnectDatabase.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, phone);
@@ -774,7 +837,12 @@ public class QuanLiBanHangPanel extends JPanel {
                 if (rs.next()) {
                     selectedCustomerId = rs.getInt("MaKH");
                     txtCustomerName.setText(rs.getString("Ho") + " " + rs.getString("Ten"));
-                    lblCustomerPoints.setText("0 điểm");
+                    customerAvailablePoints = rs.getInt("Diem");
+                    lblCustomerPoints.setText(customerAvailablePoints + " điểm");
+                    chkUsePoints.setEnabled(customerAvailablePoints >= POINTS_STEP);
+                    chkUsePoints.setSelected(false);
+                    txtRedeemPoints.setText("0");
+                    txtRedeemPoints.setEnabled(false);
                     customerDiscount = 0;
                     updateCartTotal();
                     return;
@@ -795,6 +863,11 @@ public class QuanLiBanHangPanel extends JPanel {
                 JOptionPane.INFORMATION_MESSAGE);
         txtCustomerName.setText("");
         lblCustomerPoints.setText("0 điểm");
+        customerAvailablePoints = 0;
+        chkUsePoints.setEnabled(false);
+        chkUsePoints.setSelected(false);
+        txtRedeemPoints.setText("0");
+        txtRedeemPoints.setEnabled(false);
         customerDiscount = 0;
         updateCartTotal();
     }
@@ -803,6 +876,11 @@ public class QuanLiBanHangPanel extends JPanel {
         txtPhoneCustomer.setText("");
         txtCustomerName.setText("Khách lẻ");
         lblCustomerPoints.setText("0 điểm");
+        customerAvailablePoints = 0;
+        chkUsePoints.setEnabled(false);
+        chkUsePoints.setSelected(false);
+        txtRedeemPoints.setText("0");
+        txtRedeemPoints.setEnabled(false);
         selectedCustomerId = -1;
         customerDiscount = 0;
         updateCartTotal();
@@ -832,6 +910,8 @@ public class QuanLiBanHangPanel extends JPanel {
                 if (dsChiTiet.isEmpty()) {
                     throw new IllegalArgumentException("Giỏ hàng chưa có sản phẩm hợp lệ để thanh toán.");
                 }
+                int diemCong = tinhTongDiemHoaDon(dsChiTiet);
+                int diemDung = pointsRedeemedForCurrentOrder;
 
                 HoaDonDTO hd = new HoaDonDTO();
                 hd.setNgayLapHD(new Date());
@@ -845,8 +925,22 @@ public class QuanLiBanHangPanel extends JPanel {
                     throw new IllegalStateException("Không tạo được hóa đơn.");
                 }
 
+                if (selectedCustomerId > 0 && diemDung > 0) {
+                    boolean truDiemOk = deductCustomerPoints(selectedCustomerId, diemDung);
+                    if (!truDiemOk) {
+                        throw new IllegalStateException("Không thể trừ điểm tích lũy cho khách hàng.");
+                    }
+                }
+
+                int diemMoi = selectedCustomerId > 0 ? getCustomerPointsById(selectedCustomerId) : 0;
+
                 JOptionPane.showMessageDialog(this,
-                        "✅ Thanh toán thành công!\n\nMã hóa đơn: " + maHD,
+                    "✅ Thanh toán thành công!\n\nMã hóa đơn: " + maHD
+                        + (selectedCustomerId > 0
+                            ? "\nĐiểm dùng: -" + diemDung
+                                + "\nĐiểm cộng: +" + diemCong
+                                + "\nTổng điểm hiện tại: " + diemMoi
+                            : ""),
                         "Thành công",
                         JOptionPane.INFORMATION_MESSAGE);
 
@@ -855,6 +949,11 @@ public class QuanLiBanHangPanel extends JPanel {
                 txtPhoneCustomer.setText("");
                 txtCustomerName.setText("");
                 lblCustomerPoints.setText("0 điểm");
+                customerAvailablePoints = 0;
+                chkUsePoints.setEnabled(false);
+                chkUsePoints.setSelected(false);
+                txtRedeemPoints.setText("0");
+                txtRedeemPoints.setEnabled(false);
                 selectedCustomerId = -1;
                 customerDiscount = 0;
                 promotionDiscount = 0;
@@ -915,6 +1014,95 @@ public class QuanLiBanHangPanel extends JPanel {
             ds.add(ct);
         }
         return ds;
+    }
+
+    private int tinhTongDiemHoaDon(ArrayList<ChiTietHoaDonDTO> dsChiTiet) {
+        int tong = 0;
+        for (ChiTietHoaDonDTO ct : dsChiTiet) {
+            tong += Math.max(0, ct.getDiem());
+        }
+        return tong;
+    }
+
+    private int getCustomerPointsById(int maKH) {
+        if (maKH <= 0) {
+            return 0;
+        }
+        String sql = "SELECT IFNULL(TICHDIEM, 0) AS Diem FROM tichdiem WHERE MaKH = ?";
+        try (Connection conn = ConnectDatabase.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, maKH);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("Diem");
+                }
+            }
+        } catch (Exception ex) {
+            // Keep checkout flow stable; if query fails, return 0.
+        }
+        return 0;
+    }
+
+    private boolean deductCustomerPoints(int maKH, int points) {
+        if (maKH <= 0 || points <= 0) {
+            return true;
+        }
+        String sql = "UPDATE tichdiem SET TICHDIEM = TICHDIEM - ? WHERE MaKH = ? AND TICHDIEM >= ?";
+        try (Connection conn = ConnectDatabase.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, points);
+            ps.setInt(2, maKH);
+            ps.setInt(3, points);
+            return ps.executeUpdate() > 0;
+        } catch (Exception ex) {
+            return false;
+        }
+    }
+
+    private double calculateRedeemDiscount(double currentTotal, double currentPromotionDiscount) {
+        pointsRedeemedForCurrentOrder = 0;
+
+        if (selectedCustomerId <= 0 || customerAvailablePoints < POINTS_STEP || chkUsePoints == null || !chkUsePoints.isSelected()) {
+            return 0;
+        }
+
+        int requested = parseRequestedRedeemPoints();
+        if (requested <= 0) {
+            return 0;
+        }
+
+        int byPointBalance = Math.min(requested, customerAvailablePoints);
+        byPointBalance = (byPointBalance / POINTS_STEP) * POINTS_STEP;
+
+        double maxMoneyCanDiscount = Math.max(0, currentTotal - currentPromotionDiscount);
+        int byAmount = ((int) (maxMoneyCanDiscount / DISCOUNT_PER_STEP)) * POINTS_STEP;
+
+        int actualPoints = Math.min(byPointBalance, byAmount);
+        if (actualPoints <= 0) {
+            return 0;
+        }
+
+        pointsRedeemedForCurrentOrder = actualPoints;
+        return (actualPoints / (double) POINTS_STEP) * DISCOUNT_PER_STEP;
+    }
+
+    private int parseRequestedRedeemPoints() {
+        if (txtRedeemPoints == null) {
+            return 0;
+        }
+        String text = txtRedeemPoints.getText();
+        if (text == null) {
+            return 0;
+        }
+        String cleaned = text.replaceAll("[^0-9]", "").trim();
+        if (cleaned.isEmpty()) {
+            return 0;
+        }
+        try {
+            return Integer.parseInt(cleaned);
+        } catch (Exception ex) {
+            return 0;
+        }
     }
 
     private int getProductIdByName(String tenBanh) {

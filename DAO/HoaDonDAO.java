@@ -128,14 +128,18 @@ public class HoaDonDAO {
         String insertHoaDon = "INSERT INTO hoadon (NgayLapHD, MaNV, MaKH, ThanhTien) VALUES (?, ?, ?, ?)";
         String insertChiTiet = "INSERT INTO chitiethoadon (MaHD, MaBanh, SoLuong, DonGia, Diem) VALUES (?, ?, ?, ?, ?)";
         String truTonKho = "UPDATE banh SET SoLuong = SoLuong - ? WHERE MaBanh = ? AND SoLuong >= ?";
+        String updateTichDiem = "UPDATE tichdiem SET TICHDIEM = TICHDIEM + ? WHERE MaKH = ?";
+        String insertTichDiem = "INSERT INTO tichdiem (MaKH, TICHDIEM) VALUES (?, ?)";
 
         try (Connection conn = ConnectDatabase.getConnection()) {
             boolean oldAuto = conn.getAutoCommit();
             conn.setAutoCommit(false);
 
-            try (PreparedStatement psHD = conn.prepareStatement(insertHoaDon, Statement.RETURN_GENERATED_KEYS);
+                try (PreparedStatement psHD = conn.prepareStatement(insertHoaDon, Statement.RETURN_GENERATED_KEYS);
                     PreparedStatement psCT = conn.prepareStatement(insertChiTiet);
-                    PreparedStatement psKho = conn.prepareStatement(truTonKho)) {
+                    PreparedStatement psKho = conn.prepareStatement(truTonKho);
+                        PreparedStatement psUpdateTichDiem = conn.prepareStatement(updateTichDiem);
+                        PreparedStatement psInsertTichDiem = conn.prepareStatement(insertTichDiem)) {
 
                 psHD.setTimestamp(1, new java.sql.Timestamp(hd.getNgayLapHD().getTime()));
                 if (hd.getMaNV() > 0) {
@@ -162,6 +166,7 @@ public class HoaDonDAO {
                     maHD = keys.getInt(1);
                 }
 
+                int tongDiemCong = 0;
                 for (DTO.ChiTietHoaDonDTO ct : dsChiTiet) {
                     if (ct.getMaBanh() <= 0 || ct.getSoLuong() <= 0) {
                         throw new IllegalArgumentException("Chi tiết hóa đơn không hợp lệ.");
@@ -181,6 +186,20 @@ public class HoaDonDAO {
                     psCT.setDouble(4, ct.getDonGia());
                     psCT.setInt(5, ct.getDiem());
                     psCT.executeUpdate();
+
+                    tongDiemCong += Math.max(0, ct.getDiem());
+                }
+
+                if (hd.getMaKH() > 0 && tongDiemCong > 0) {
+                    psUpdateTichDiem.setInt(1, tongDiemCong);
+                    psUpdateTichDiem.setInt(2, hd.getMaKH());
+                    int updated = psUpdateTichDiem.executeUpdate();
+
+                    if (updated <= 0) {
+                        psInsertTichDiem.setInt(1, hd.getMaKH());
+                        psInsertTichDiem.setInt(2, tongDiemCong);
+                        psInsertTichDiem.executeUpdate();
+                    }
                 }
 
                 conn.commit();

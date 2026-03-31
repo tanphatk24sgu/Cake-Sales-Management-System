@@ -5,7 +5,7 @@ public class KhachHangDTO {
     private String ho;
     private String ten;
     private String diaChi;
-    private int sdt;
+    private String sdt;
 
     // Constructor
     public KhachHangDTO() {
@@ -13,7 +13,7 @@ public class KhachHangDTO {
         this.ho = "";
         this.ten = "";
         this.diaChi = "";
-        this.sdt = 0;
+        this.sdt = "";
     }
 
     // Getter and Setter
@@ -49,11 +49,11 @@ public class KhachHangDTO {
         this.diaChi = diaChi;
     }
 
-    public int getSdt() {
+    public String getSdt() {
         return sdt;
     }
 
-    public void setSdt(int sdt) {
+    public void setSdt(String sdt) {
         this.sdt = sdt;
     }
 

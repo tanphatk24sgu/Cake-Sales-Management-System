@@ -18,7 +18,11 @@ import java.sql.Timestamp;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Date;
+import java.util.Map;
+import java.util.Set;
 import java.util.List;
 
 import org.apache.poi.ss.usermodel.Row;
@@ -323,7 +327,7 @@ public class QuanLiPhieuNhapPanel extends JPanel {
         dgbc.fill = GridBagConstraints.HORIZONTAL;
 
         JComboBox<String> cmbLoai = new JComboBox<>(new String[] { "Bánh", "Nguyên liệu" });
-        JTextField txtMaBanh = new JTextField();
+        JComboBox<String> cmbMaBanh = createBanhSuggestionCombo();
         JTextField txtMaNVL = new JTextField();
         JTextField txtSoLuong = new JTextField();
         JTextField txtDonGia = new JTextField();
@@ -337,7 +341,7 @@ public class QuanLiPhieuNhapPanel extends JPanel {
                 new JLabel("Đơn giá:"),
                 new JLabel("Tình trạng:")
         };
-        JComponent[] dFields = { cmbLoai, txtMaBanh, txtMaNVL, txtSoLuong, txtDonGia, txtTinhTrang };
+            JComponent[] dFields = { cmbLoai, cmbMaBanh, txtMaNVL, txtSoLuong, txtDonGia, txtTinhTrang };
 
         for (int i = 0; i < dLabels.length; i++) {
             dgbc.gridx = 0;
@@ -351,8 +355,8 @@ public class QuanLiPhieuNhapPanel extends JPanel {
             detailInput.add(dFields[i], dgbc);
         }
 
-        applyLoaiSelection(cmbLoai, txtMaBanh, txtMaNVL);
-        cmbLoai.addActionListener(e -> applyLoaiSelection(cmbLoai, txtMaBanh, txtMaNVL));
+        applyLoaiSelection(cmbLoai, cmbMaBanh, txtMaNVL);
+        cmbLoai.addActionListener(e -> applyLoaiSelection(cmbLoai, cmbMaBanh, txtMaNVL));
 
         String[] detailCols = { "Loại", "Mã bánh", "Tên bánh", "Mã NVL", "Tên NVL", "Số lượng", "Đơn giá",
             "Tình trạng" };
@@ -383,10 +387,10 @@ public class QuanLiPhieuNhapPanel extends JPanel {
 
         btnAddDetail.addActionListener(e -> {
             try {
-                Object[] detailRow = buildDetailRowFromInput(cmbLoai, txtMaBanh, txtMaNVL, txtSoLuong, txtDonGia,
+                Object[] detailRow = buildDetailRowFromInput(cmbLoai, cmbMaBanh, txtMaNVL, txtSoLuong, txtDonGia,
                         txtTinhTrang);
                 detailModel.addRow(detailRow);
-                clearDetailInputs(cmbLoai, txtMaBanh, txtMaNVL, txtSoLuong, txtDonGia, txtTinhTrang);
+                clearDetailInputs(cmbLoai, cmbMaBanh, txtMaNVL, txtSoLuong, txtDonGia, txtTinhTrang);
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(dialog, ex.getMessage(), "Lỗi dữ liệu chi tiết",
                         JOptionPane.WARNING_MESSAGE);
@@ -401,12 +405,12 @@ public class QuanLiPhieuNhapPanel extends JPanel {
                 return;
             }
             try {
-                Object[] detailRow = buildDetailRowFromInput(cmbLoai, txtMaBanh, txtMaNVL, txtSoLuong, txtDonGia,
+                Object[] detailRow = buildDetailRowFromInput(cmbLoai, cmbMaBanh, txtMaNVL, txtSoLuong, txtDonGia,
                         txtTinhTrang);
                 for (int i = 0; i < detailRow.length; i++) {
                     detailModel.setValueAt(detailRow[i], idx, i);
                 }
-                clearDetailInputs(cmbLoai, txtMaBanh, txtMaNVL, txtSoLuong, txtDonGia, txtTinhTrang);
+                clearDetailInputs(cmbLoai, cmbMaBanh, txtMaNVL, txtSoLuong, txtDonGia, txtTinhTrang);
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(dialog, ex.getMessage(), "Lỗi dữ liệu chi tiết",
                         JOptionPane.WARNING_MESSAGE);
@@ -433,15 +437,15 @@ public class QuanLiPhieuNhapPanel extends JPanel {
             }
             String loai = String.valueOf(detailModel.getValueAt(idx, 0));
             cmbLoai.setSelectedItem(loai);
-                txtMaBanh.setText(
-                    detailModel.getValueAt(idx, 1) == null ? "" : String.valueOf(detailModel.getValueAt(idx, 1)));
+                setSelectedMaBanh(cmbMaBanh,
+                    detailModel.getValueAt(idx, 1) == null ? null : Integer.valueOf(String.valueOf(detailModel.getValueAt(idx, 1))));
                 txtMaNVL.setText(
                     detailModel.getValueAt(idx, 3) == null ? "" : String.valueOf(detailModel.getValueAt(idx, 3)));
                 txtSoLuong.setText(String.valueOf(detailModel.getValueAt(idx, 5)));
                 txtDonGia.setText(String.valueOf(detailModel.getValueAt(idx, 6)));
                 txtTinhTrang.setText(
                     detailModel.getValueAt(idx, 7) == null ? "" : String.valueOf(detailModel.getValueAt(idx, 7)));
-            applyLoaiSelection(cmbLoai, txtMaBanh, txtMaNVL);
+            applyLoaiSelection(cmbLoai, cmbMaBanh, txtMaNVL);
         });
 
         detailButtons.add(btnAddDetail);
@@ -527,6 +531,8 @@ public class QuanLiPhieuNhapPanel extends JPanel {
                     psCT.setDouble(5, (Double) detail[3]);
                     psCT.setString(6, (String) detail[4]);
                     psCT.executeUpdate();
+
+                    capNhatTonKhoBanh(conn, (Integer) detail[0], (Integer) detail[2]);
                 }
 
                 conn.commit();
@@ -551,6 +557,8 @@ public class QuanLiPhieuNhapPanel extends JPanel {
             try (PreparedStatement psUpdatePN = conn.prepareStatement(updatePN);
                     PreparedStatement psDeleteCT = conn.prepareStatement(deleteCT);
                     PreparedStatement psInsertCT = conn.prepareStatement(insertCT)) {
+                Map<Integer, Integer> tonCuTheoBanh = laySoLuongBanhTheoPhieuNhap(conn, maPN);
+
                 psUpdatePN.setTimestamp(1, ngay);
                 psUpdatePN.setInt(2, maNV);
                 psUpdatePN.setInt(3, maNCC);
@@ -569,6 +577,9 @@ public class QuanLiPhieuNhapPanel extends JPanel {
                     psInsertCT.setString(6, (String) detail[4]);
                     psInsertCT.executeUpdate();
                 }
+
+                Map<Integer, Integer> tonMoiTheoBanh = tongHopSoLuongBanh(details);
+                capNhatTonKhoTheoChenhLech(conn, tonCuTheoBanh, tonMoiTheoBanh);
 
                 conn.commit();
             } catch (Exception ex) {
@@ -612,21 +623,21 @@ public class QuanLiPhieuNhapPanel extends JPanel {
         return rows;
     }
 
-    private void applyLoaiSelection(JComboBox<String> cmbLoai, JTextField txtMaBanh, JTextField txtMaNVL) {
+    private void applyLoaiSelection(JComboBox<String> cmbLoai, JComboBox<String> cmbMaBanh, JTextField txtMaNVL) {
         boolean isBanh = "Bánh".equals(String.valueOf(cmbLoai.getSelectedItem()));
-        txtMaBanh.setEnabled(isBanh);
+        cmbMaBanh.setEnabled(isBanh);
         txtMaNVL.setEnabled(!isBanh);
         if (isBanh) {
             txtMaNVL.setText("");
         } else {
-            txtMaBanh.setText("");
+            cmbMaBanh.setSelectedIndex(0);
         }
     }
 
-    private Object[] buildDetailRowFromInput(JComboBox<String> cmbLoai, JTextField txtMaBanh, JTextField txtMaNVL,
+    private Object[] buildDetailRowFromInput(JComboBox<String> cmbLoai, JComboBox<String> cmbMaBanh, JTextField txtMaNVL,
             JTextField txtSoLuong, JTextField txtDonGia, JTextField txtTinhTrang) {
         String loai = String.valueOf(cmbLoai.getSelectedItem());
-        Integer maBanh = parseOptionalInt(txtMaBanh.getText().trim());
+        Integer maBanh = getSelectedMaBanh(cmbMaBanh);
         Integer maNvl = parseOptionalInt(txtMaNVL.getText().trim());
         Integer soLuong = parseOptionalInt(txtSoLuong.getText().trim());
         Double donGia = parseOptionalDouble(txtDonGia.getText().trim());
@@ -644,15 +655,15 @@ public class QuanLiPhieuNhapPanel extends JPanel {
         return new Object[] { loai, maBanh, tenBanh, maNvl, tenNvl, soLuong, donGia, tinhTrang };
     }
 
-    private void clearDetailInputs(JComboBox<String> cmbLoai, JTextField txtMaBanh, JTextField txtMaNVL,
+    private void clearDetailInputs(JComboBox<String> cmbLoai, JComboBox<String> cmbMaBanh, JTextField txtMaNVL,
             JTextField txtSoLuong, JTextField txtDonGia, JTextField txtTinhTrang) {
         cmbLoai.setSelectedIndex(0);
-        txtMaBanh.setText("");
+        cmbMaBanh.setSelectedIndex(0);
         txtMaNVL.setText("");
         txtSoLuong.setText("");
         txtDonGia.setText("");
         txtTinhTrang.setText("");
-        applyLoaiSelection(cmbLoai, txtMaBanh, txtMaNVL);
+        applyLoaiSelection(cmbLoai, cmbMaBanh, txtMaNVL);
     }
 
     private List<Object[]> collectDetailsFromModel(DefaultTableModel model) {
@@ -696,10 +707,17 @@ public class QuanLiPhieuNhapPanel extends JPanel {
             conn.setAutoCommit(false);
             try (PreparedStatement ps1 = conn.prepareStatement(deleteDetails);
                     PreparedStatement ps2 = conn.prepareStatement(deleteHeader)) {
+                Map<Integer, Integer> tonCuTheoBanh = laySoLuongBanhTheoPhieuNhap(conn, maPN);
+
                 ps1.setInt(1, maPN);
                 ps1.executeUpdate();
                 ps2.setInt(1, maPN);
                 ps2.executeUpdate();
+
+                for (Map.Entry<Integer, Integer> entry : tonCuTheoBanh.entrySet()) {
+                    capNhatTonKhoBanh(conn, entry.getKey(), -entry.getValue());
+                }
+
                 conn.commit();
             } catch (Exception ex) {
                 conn.rollback();
@@ -899,8 +917,7 @@ public class QuanLiPhieuNhapPanel extends JPanel {
         JTextField txtMaPN = new JTextField(String.valueOf(maPhieuNhap));
         txtMaPN.setEditable(false);
         JComboBox<String> cmbLoai = new JComboBox<>(new String[] { "Bánh", "Nguyên liệu" });
-        JTextField txtMaBanh = new JTextField(
-                existing == null ? "" : (existing[0] == null ? "" : String.valueOf(existing[0])));
+        JComboBox<String> cmbMaBanh = createBanhSuggestionCombo();
         JTextField txtMaNVL = new JTextField(
                 existing == null ? "" : (existing[1] == null ? "" : String.valueOf(existing[1])));
         JTextField txtSoLuong = new JTextField(existing == null ? "" : String.valueOf(existing[2]));
@@ -908,19 +925,24 @@ public class QuanLiPhieuNhapPanel extends JPanel {
         JTextField txtTinhTrang = new JTextField(existing == null ? "" : String.valueOf(existing[4]));
 
         if (existing != null) {
+            setSelectedMaBanh(cmbMaBanh,
+                existing[0] == null ? null : Integer.valueOf(String.valueOf(existing[0])));
+        }
+
+        if (existing != null) {
             cmbLoai.setSelectedItem(existing[0] == null ? "Nguyên liệu" : "Bánh");
         }
 
-        applyLoaiSelection(cmbLoai, txtMaBanh, txtMaNVL);
-        cmbLoai.addActionListener(e -> applyLoaiSelection(cmbLoai, txtMaBanh, txtMaNVL));
+        applyLoaiSelection(cmbLoai, cmbMaBanh, txtMaNVL);
+        cmbLoai.addActionListener(e -> applyLoaiSelection(cmbLoai, cmbMaBanh, txtMaNVL));
 
         if (existing != null) {
-            txtMaBanh.setEditable(false);
+            cmbMaBanh.setEnabled(false);
             txtMaNVL.setEditable(false);
             cmbLoai.setEnabled(false);
         }
 
-        JComponent[] fields = { txtMaPN, cmbLoai, txtMaBanh, txtMaNVL, txtSoLuong, txtDonGia, txtTinhTrang };
+        JComponent[] fields = { txtMaPN, cmbLoai, cmbMaBanh, txtMaNVL, txtSoLuong, txtDonGia, txtTinhTrang };
         String[] labels = { "Mã PN:", "Loại nhập:", "Mã bánh:", "Mã NVL:", "Số lượng:", "Đơn giá:", "Tình trạng:" };
 
         for (int i = 0; i < labels.length; i++) {
@@ -943,7 +965,7 @@ public class QuanLiPhieuNhapPanel extends JPanel {
         final boolean[] ok = { false };
         btnSave.addActionListener(e -> {
             try {
-                Integer maBanh = parseOptionalInt(txtMaBanh.getText().trim());
+                Integer maBanh = getSelectedMaBanh(cmbMaBanh);
                 Integer maNvl = parseOptionalInt(txtMaNVL.getText().trim());
                 int soLuong = Integer.parseInt(txtSoLuong.getText().trim());
                 double donGia = Double.parseDouble(txtDonGia.getText().trim());
@@ -976,53 +998,235 @@ public class QuanLiPhieuNhapPanel extends JPanel {
     private void insertChiTiet(int maPN, Integer maBanh, Integer maNvl, int soLuong, double donGia, String tinhTrang)
             throws Exception {
         String sql = "INSERT INTO ct_phieunhaphang (MaPhieuNhap, MaBanh, MaNVL, SoLuong, DonGia, TinhTrang) VALUES (?, ?, ?, ?, ?, ?)";
-        try (Connection conn = ConnectDatabase.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, maPN);
-            setNullableInt(ps, 2, maBanh);
-            setNullableInt(ps, 3, maNvl);
-            ps.setInt(4, soLuong);
-            ps.setDouble(5, donGia);
-            ps.setString(6, tinhTrang);
-            ps.executeUpdate();
+        try (Connection conn = ConnectDatabase.getConnection()) {
+            boolean oldAuto = conn.getAutoCommit();
+            conn.setAutoCommit(false);
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setInt(1, maPN);
+                setNullableInt(ps, 2, maBanh);
+                setNullableInt(ps, 3, maNvl);
+                ps.setInt(4, soLuong);
+                ps.setDouble(5, donGia);
+                ps.setString(6, tinhTrang);
+                ps.executeUpdate();
+
+                capNhatTonKhoBanh(conn, maBanh, soLuong);
+                conn.commit();
+            } catch (Exception ex) {
+                conn.rollback();
+                throw ex;
+            } finally {
+                conn.setAutoCommit(oldAuto);
+            }
         }
     }
 
     private void updateChiTiet(int maPN, Integer maBanh, Integer maNvl, int soLuong, double donGia, String tinhTrang)
             throws Exception {
+        String sqlLayCu = "SELECT SoLuong FROM ct_phieunhaphang WHERE MaPhieuNhap = ? "
+                + "AND ((? IS NULL AND MaBanh IS NULL) OR MaBanh = ?) "
+                + "AND ((? IS NULL AND MaNVL IS NULL) OR MaNVL = ?)";
         String sql = "UPDATE ct_phieunhaphang SET SoLuong = ?, DonGia = ?, TinhTrang = ? "
                 + "WHERE MaPhieuNhap = ? "
                 + "AND ((? IS NULL AND MaBanh IS NULL) OR MaBanh = ?) "
                 + "AND ((? IS NULL AND MaNVL IS NULL) OR MaNVL = ?)";
-        try (Connection conn = ConnectDatabase.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, soLuong);
-            ps.setDouble(2, donGia);
-            ps.setString(3, tinhTrang);
-            ps.setInt(4, maPN);
-            setNullableInt(ps, 5, maBanh);
-            setNullableInt(ps, 6, maBanh);
-            setNullableInt(ps, 7, maNvl);
-            setNullableInt(ps, 8, maNvl);
-            ps.executeUpdate();
+        try (Connection conn = ConnectDatabase.getConnection()) {
+            boolean oldAuto = conn.getAutoCommit();
+            conn.setAutoCommit(false);
+            try {
+                int soLuongCu = 0;
+                try (PreparedStatement psCu = conn.prepareStatement(sqlLayCu)) {
+                    psCu.setInt(1, maPN);
+                    setNullableInt(psCu, 2, maBanh);
+                    setNullableInt(psCu, 3, maBanh);
+                    setNullableInt(psCu, 4, maNvl);
+                    setNullableInt(psCu, 5, maNvl);
+                    try (ResultSet rs = psCu.executeQuery()) {
+                        if (rs.next()) {
+                            soLuongCu = rs.getInt("SoLuong");
+                        } else {
+                            throw new IllegalStateException("Không tìm thấy chi tiết phiếu nhập cần sửa.");
+                        }
+                    }
+                }
+
+                try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                    ps.setInt(1, soLuong);
+                    ps.setDouble(2, donGia);
+                    ps.setString(3, tinhTrang);
+                    ps.setInt(4, maPN);
+                    setNullableInt(ps, 5, maBanh);
+                    setNullableInt(ps, 6, maBanh);
+                    setNullableInt(ps, 7, maNvl);
+                    setNullableInt(ps, 8, maNvl);
+                    ps.executeUpdate();
+                }
+
+                capNhatTonKhoBanh(conn, maBanh, soLuong - soLuongCu);
+                conn.commit();
+            } catch (Exception ex) {
+                conn.rollback();
+                throw ex;
+            } finally {
+                conn.setAutoCommit(oldAuto);
+            }
         }
     }
 
     private void deleteChiTiet(int maPN, Integer maBanh, Integer maNvl) {
+        String sqlLayCu = "SELECT SoLuong FROM ct_phieunhaphang WHERE MaPhieuNhap = ? "
+                + "AND ((? IS NULL AND MaBanh IS NULL) OR MaBanh = ?) "
+                + "AND ((? IS NULL AND MaNVL IS NULL) OR MaNVL = ?)";
         String sql = "DELETE FROM ct_phieunhaphang WHERE MaPhieuNhap = ? "
                 + "AND ((? IS NULL AND MaBanh IS NULL) OR MaBanh = ?) "
                 + "AND ((? IS NULL AND MaNVL IS NULL) OR MaNVL = ?)";
-        try (Connection conn = ConnectDatabase.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, maPN);
-            setNullableInt(ps, 2, maBanh);
-            setNullableInt(ps, 3, maBanh);
-            setNullableInt(ps, 4, maNvl);
-            setNullableInt(ps, 5, maNvl);
-            ps.executeUpdate();
+        try (Connection conn = ConnectDatabase.getConnection()) {
+            boolean oldAuto = conn.getAutoCommit();
+            conn.setAutoCommit(false);
+            try {
+                int soLuongCu = 0;
+                try (PreparedStatement psCu = conn.prepareStatement(sqlLayCu)) {
+                    psCu.setInt(1, maPN);
+                    setNullableInt(psCu, 2, maBanh);
+                    setNullableInt(psCu, 3, maBanh);
+                    setNullableInt(psCu, 4, maNvl);
+                    setNullableInt(psCu, 5, maNvl);
+                    try (ResultSet rs = psCu.executeQuery()) {
+                        if (rs.next()) {
+                            soLuongCu = rs.getInt("SoLuong");
+                        }
+                    }
+                }
+
+                try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                    ps.setInt(1, maPN);
+                    setNullableInt(ps, 2, maBanh);
+                    setNullableInt(ps, 3, maBanh);
+                    setNullableInt(ps, 4, maNvl);
+                    setNullableInt(ps, 5, maNvl);
+                    ps.executeUpdate();
+                }
+
+                capNhatTonKhoBanh(conn, maBanh, -soLuongCu);
+                conn.commit();
+            } catch (Exception ex) {
+                conn.rollback();
+                throw ex;
+            } finally {
+                conn.setAutoCommit(oldAuto);
+            }
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Xóa chi tiết thất bại: " + ex.getMessage(), "Lỗi",
                     JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private JComboBox<String> createBanhSuggestionCombo() {
+        JComboBox<String> combo = new JComboBox<>();
+        combo.addItem("");
+        combo.setEditable(true);
+
+        String sql = "SELECT MaBanh, TenBanh FROM banh ORDER BY MaBanh";
+        try (Connection conn = ConnectDatabase.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                combo.addItem(rs.getInt("MaBanh") + " - " + rs.getString("TenBanh"));
+            }
+        } catch (Exception ex) {
+            // If loading suggestion fails, user can still type manual code.
+        }
+        return combo;
+    }
+
+    private Integer getSelectedMaBanh(JComboBox<String> combo) {
+        Object selected = combo.getEditor().getItem();
+        if (selected == null) {
+            return null;
+        }
+        String text = String.valueOf(selected).trim();
+        if (text.isEmpty()) {
+            return null;
+        }
+
+        int dash = text.indexOf("-");
+        String ma = dash >= 0 ? text.substring(0, dash).trim() : text;
+        return Integer.parseInt(ma);
+    }
+
+    private void setSelectedMaBanh(JComboBox<String> combo, Integer maBanh) {
+        if (maBanh == null) {
+            combo.setSelectedIndex(0);
+            return;
+        }
+        String prefix = maBanh + " -";
+        for (int i = 0; i < combo.getItemCount(); i++) {
+            String item = String.valueOf(combo.getItemAt(i));
+            if (item.startsWith(prefix)) {
+                combo.setSelectedIndex(i);
+                return;
+            }
+        }
+        combo.getEditor().setItem(String.valueOf(maBanh));
+    }
+
+    private Map<Integer, Integer> laySoLuongBanhTheoPhieuNhap(Connection conn, int maPN) throws Exception {
+        Map<Integer, Integer> data = new HashMap<>();
+        String sql = "SELECT MaBanh, SUM(SoLuong) AS TongSoLuong FROM ct_phieunhaphang "
+                + "WHERE MaPhieuNhap = ? AND MaBanh IS NOT NULL GROUP BY MaBanh";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, maPN);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    data.put(rs.getInt("MaBanh"), rs.getInt("TongSoLuong"));
+                }
+            }
+        }
+        return data;
+    }
+
+    private Map<Integer, Integer> tongHopSoLuongBanh(List<Object[]> details) {
+        Map<Integer, Integer> data = new HashMap<>();
+        for (Object[] detail : details) {
+            Integer maBanh = (Integer) detail[0];
+            Integer soLuong = (Integer) detail[2];
+            if (maBanh == null || soLuong == null) {
+                continue;
+            }
+            data.put(maBanh, data.getOrDefault(maBanh, 0) + soLuong);
+        }
+        return data;
+    }
+
+    private void capNhatTonKhoTheoChenhLech(Connection conn, Map<Integer, Integer> tonCuTheoBanh,
+            Map<Integer, Integer> tonMoiTheoBanh) throws Exception {
+        Set<Integer> allKeys = new HashSet<>();
+        allKeys.addAll(tonCuTheoBanh.keySet());
+        allKeys.addAll(tonMoiTheoBanh.keySet());
+
+        for (Integer maBanh : allKeys) {
+            int cu = tonCuTheoBanh.getOrDefault(maBanh, 0);
+            int moi = tonMoiTheoBanh.getOrDefault(maBanh, 0);
+            int delta = moi - cu;
+            capNhatTonKhoBanh(conn, maBanh, delta);
+        }
+    }
+
+    private void capNhatTonKhoBanh(Connection conn, Integer maBanh, int deltaSoLuong) throws Exception {
+        if (maBanh == null || deltaSoLuong == 0) {
+            return;
+        }
+
+        String sql = "UPDATE banh SET SoLuong = SoLuong + ? WHERE MaBanh = ? AND SoLuong + ? >= 0";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, deltaSoLuong);
+            ps.setInt(2, maBanh);
+            ps.setInt(3, deltaSoLuong);
+            int updated = ps.executeUpdate();
+            if (updated <= 0) {
+                throw new IllegalStateException("Không thể cập nhật tồn kho cho mã bánh " + maBanh
+                        + ". Vui lòng kiểm tra số lượng còn lại.");
+            }
         }
     }
 

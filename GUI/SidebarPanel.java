@@ -101,6 +101,7 @@ public class SidebarPanel extends JPanel {
                 { "gift.png", "Tích điểm", ContentPanel.TICH_DIEM },
                 { "supplier.png", "Phiếu nhập hàng", ContentPanel.PHIEU_NHAP },
                 { "supplier.png", "Nhà cung cấp", ContentPanel.NHA_CUNG_CAP },
+                { "multiple-users-silhouette.png", "Khách hàng", ContentPanel.KHACH_HANG },
                 { "setting.png", "Cài đặt", ContentPanel.CAI_DAT }
         };
 
