@@ -1,5 +1,3 @@
-package GUI;
-
 import BUS.ChuongTrinhKhuyenMaiBUS;
 import BUS.HoaDonBUS;
 import DTO.ChiTietHoaDonDTO;

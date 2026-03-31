@@ -523,14 +523,47 @@ INSERT INTO CT_CHUONGTRINHKHUYENMAI VALUES
 (1,1,10),(2,2,20),(3,3,30),(4,4,5),(5,5,15),
 (6,6,10),(7,7,20),(8,8,25),(9,9,30),(10,10,12);
 
-INSERT INTO CONGTHUC VALUES
-(1,1,'Trộn bột và nướng'),
-(2,1,'Nhào bột'),
-(3,1,'Nướng chocolate'),
-(4,1,'Trang trí'),
-(5,1,'Nướng giòn'),
-(6,1,'Làm lạnh'),
-(7,1,'Thêm trái cây'),
-(8,1,'Truyền thống'),
-(9,1,'Cao cấp'),
-(10,1,'Mini');
+INSERT INTO CONGTHUC (MaBanh, MaDVT, CachLam) VALUES
+-- Nhóm bánh hiện đại
+(1,1,'Trộn bột matcha, đánh kem, nướng và phủ lớp matcha'),
+(2,1,'Xếp lớp bánh và kem mascarpone, phủ cacao, làm lạnh'),
+(3,1,'Làm mousse xoài từ xoài xay, gelatin và kem tươi'),
+(4,1,'Hấp hỗn hợp trứng sữa caramel'),
+(5,1,'Nướng vỏ bánh, bơm nhân kem vào bên trong'),
+
+-- Nhóm bánh mì
+(6,1,'Nhào bột, ủ men, nướng bánh mì ngọt'),
+(18,1,'Nướng bánh mì sandwich mềm, cắt lát'),
+(19,1,'Nướng đế bánh, thêm topping và phô mai'),
+
+-- Nhóm bánh bông lan
+(7,1,'Đánh trứng, trộn bột, nướng bông lan'),
+(8,1,'Nướng bánh nhỏ, trang trí kem trên mặt'),
+
+-- Nhóm bánh lạnh
+(9,1,'Trộn phô mai với kem, làm lạnh tạo cheesecake'),
+(2,1,'Làm lạnh nhiều lớp kem và bánh'),
+
+-- Nhóm bánh chiên/nướng
+(10,1,'Chiên bột tạo hình donut, phủ đường hoặc socola'),
+(16,1,'Nướng waffle bằng khuôn, ăn kèm mật ong'),
+(17,1,'Chiên pancake trên chảo, ăn kèm siro'),
+
+-- Nhóm bánh truyền thống
+(13,1,'Nấu đậu xanh, làm nhân, nướng bánh'),
+(14,1,'Làm nhân đậu, bọc vỏ và nướng bánh pía'),
+(20,1,'Nướng bánh từ khoai mì và nước cốt dừa'),
+
+-- Nhóm bánh trái cây
+(21,1,'Nướng bánh chuối từ chuối chín nghiền'),
+(22,1,'Nướng bánh táo với lát táo tươi'),
+(23,1,'Nướng bánh việt quất với sốt berry'),
+(24,1,'Làm bánh từ sầu riêng, nướng nhẹ'),
+(25,1,'Nướng bánh cam với vỏ cam bào'),
+(26,1,'Làm bánh kiwi, phủ lát kiwi tươi'),
+(27,1,'Nướng bánh dứa, thêm mứt dứa'),
+
+-- Nhóm bánh khô
+(28,1,'Nướng bánh hạnh nhân giòn'),
+(29,1,'Nướng bánh mè thơm'),
+(30,1,'Nướng bánh gừng với gia vị đặc trưng');

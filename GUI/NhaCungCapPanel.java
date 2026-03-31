@@ -1,5 +1,3 @@
-package GUI;
-
 import BUS.NhaCungCapBUS;
 import DTO.NhaCungCapDTO;
 
