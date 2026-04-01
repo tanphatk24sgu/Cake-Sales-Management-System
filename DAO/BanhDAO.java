@@ -102,17 +102,30 @@ public class BanhDAO {
     }
 
     public boolean delete(int maBanh) {
+        Connection conn = null;
+        PreparedStatement pst1 = null;
+        PreparedStatement pst2 = null;
 
         try {
+            conn = getConn();
+            conn.setAutoCommit(false);
 
-            String sql = "DELETE FROM banh WHERE MaBanh=?";
-            PreparedStatement ps = getConn().prepareStatement(sql);
+            String sql1 = "DELETE FROM congthuc WHERE MaBAnh=?";
+            pst1 = conn.prepareStatement(sql1);
+            pst1.setInt(1, maBanh);
+            pst1.executeUpdate();
 
-            ps.setInt(1, maBanh);
+            String sql2 = "DELETE FROM banh WHERE MaBanh=?";
+            pst2 = getConn().prepareStatement(sql2);
+            pst2.setInt(1, maBanh);
+            int res = pst2.executeUpdate();
 
-            return ps.executeUpdate() > 0;
+            conn.commit();
+
+            return res > 0;
 
         } catch (Exception e) {
+            System.out.println("Lỗi xóa: " + e.getMessage());
             e.printStackTrace();
         }
 
