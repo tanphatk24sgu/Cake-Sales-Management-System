@@ -23,8 +23,8 @@ Hỗ trợ cửa hàng nhỏ quản lý sản phẩm, hóa đơn, khách hàng, 
 ## Công nghệ
 
 - Java Swing
-- SQL Server
-- SSMS
+- MýQL
+- XAMPP
 - Git, GitHub
 - VS Code
 
