@@ -79,9 +79,9 @@ public class ContentPanel extends JPanel {
 
         cardsPanel.add(createDashboardCard("🛒", "Đơn hàng hôm nay", "25", new Color(59, 130, 246)));
         cardsPanel.add(createDashboardCard("💰", "Doanh thu hôm nay", "5,250,000 VNĐ", new Color(34, 197, 94)));
-        cardsPanel.add(createDashboardCard("🎂", "Sản phẩm", "156", new Color(236, 72, 153)));
-        cardsPanel.add(createDashboardCard("👥", "Khách hàng", "89", new Color(168, 85, 247)));
-        cardsPanel.add(createDashboardCard("👨‍💼", "Nhân viên", "12", new Color(249, 115, 22)));
+        cardsPanel.add(createDashboardCard("🎂", "Sản phẩm", "30", new Color(236, 72, 153)));
+        cardsPanel.add(createDashboardCard("👥", "Khách hàng", "50", new Color(168, 85, 247)));
+        cardsPanel.add(createDashboardCard("👨‍💼", "Nhân viên", "30", new Color(249, 115, 22)));
         cardsPanel.add(createDashboardCard("📦", "Tồn kho thấp", "5", new Color(239, 68, 68)));
 
         panel.add(headerPanel, BorderLayout.NORTH);
